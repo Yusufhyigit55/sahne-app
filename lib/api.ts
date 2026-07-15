@@ -1,8 +1,8 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-// Geliştirme: Mac'in yerel IP'si. Yayında Vercel adresi olacak.
-const BASE_URL = "http://192.168.1.44:3000";
+// Yayın: Vercel canlı backend adresi.
+const BASE_URL = "https://sahne-api.vercel.app";
 
 export const api = axios.create({
   baseURL: BASE_URL,
