@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "StoryKind",
+    "name": "Tracks",
     "slug": "sahne-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -42,6 +42,7 @@
       "eas": {
         "projectId": "f708ef6e-f824-483b-ab02-4aa661b61930"
       }
-    }
+    },
+    "scheme": "tracks"
   }
 }
