@@ -108,8 +108,10 @@ export default function DiscoverScreen() {
         contentContainerStyle={{
           gap: spacing.sm,
           paddingHorizontal: SCREEN_PADDING,
+          alignItems: "center",
+          paddingVertical: 4,
         }}
-        style={{ marginTop: spacing.xl, flexGrow: 0 }}
+        style={{ marginTop: spacing.xl, flexGrow: 0, flexShrink: 0 }}
       >
         {TABS.map((t) => (
           <Chip
