@@ -559,6 +559,15 @@ export default function SettingsScreen() {
             onToggle={(v) =>
               update.mutate({ notifPrefs: { ...s.notifPrefs, likes: v } })
             }
+          />
+          <Row
+            label="Arkadaş aktiviteleri"
+            value={s.notifPrefs.friendActivity}
+            onToggle={(v) =>
+              update.mutate({
+                notifPrefs: { ...s.notifPrefs, friendActivity: v },
+              })
+            }
             last
           />
         </Section>

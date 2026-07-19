@@ -8,6 +8,7 @@ export type NotifPrefs = {
   follows: boolean;
   commentReplies: boolean;
   likes: boolean;
+  friendActivity: boolean;
 };
 
 export type Settings = {

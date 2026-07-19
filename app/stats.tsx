@@ -217,7 +217,9 @@ export default function StatsScreen() {
           {media.topGenres.length > 0 && (
             <Card colors={colors}>
               <CardTitle colors={colors}>
-                {isSeries ? "En iyi dizi türleri" : "En iyi film türleri"}
+                {isSeries
+                  ? "En çok izlediğin dizi türleri"
+                  : "En çok izlediğin film türleri"}
               </CardTitle>
               <View style={{ gap: 2 }}>
                 {media.topGenres.map((g, i) => (
@@ -236,7 +238,7 @@ export default function StatsScreen() {
           {/* En çok verdiğin puan */}
           {media.topRated.length > 0 && (
             <Card colors={colors}>
-              <CardTitle colors={colors}>En çok verdiğin puan</CardTitle>
+              <CardTitle colors={colors}>En Beğendiklerin</CardTitle>
               <View style={{ gap: 2 }}>
                 {media.topRated.map((r, i) => (
                   <Row
