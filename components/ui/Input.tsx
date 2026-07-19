@@ -11,7 +11,7 @@ type Props = {
   secure?: boolean;
   error?: string;
   autoCapitalize?: "none" | "sentences";
-  keyboardType?: "default" | "email-address";
+  keyboardType?: "default" | "email-address" | "number-pad";
 };
 
 export function Input({

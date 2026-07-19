@@ -8,6 +8,8 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppleSignInButton } from "@/components/ui/AppleSignInButton";
+import { GoogleSignInButton } from "@/components/ui/GoogleSignInButton";
 import { router } from "expo-router";
 import { useTheme } from "@/lib/store/theme";
 import { useAuth } from "@/lib/store/auth";
@@ -64,7 +66,7 @@ export default function LoginScreen() {
                 letterSpacing: 2,
               }}
             >
-              SAHNE
+              Tracks
             </Text>
             <Text style={{ fontSize: 13, color: colors.textDim }}>
               İzlediklerini takip et, keşfet, paylaş
@@ -110,6 +112,45 @@ export default function LoginScreen() {
                 loading={isLoading}
               />
             </View>
+
+            <Pressable
+              onPress={() => router.push("/(auth)/forgot-password")}
+              style={{ alignSelf: "center", marginTop: 2 }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color: colors.textDim,
+                }}
+              >
+                Şifremi unuttum
+              </Text>
+            </Pressable>
+
+            {/* Ayraç */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                marginTop: 4,
+              }}
+            >
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
+              />
+              <Text style={{ fontSize: 12, color: colors.textDim }}>veya</Text>
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
+              />
+            </View>
+
+            {/* Apple ile giriş */}
+            <AppleSignInButton onError={setError} />
+
+            {/* Google ile giriş */}
+            <GoogleSignInButton onError={setError} />
           </View>
 
           {/* Kayıt linki */}

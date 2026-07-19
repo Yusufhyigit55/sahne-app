@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { AppleSignInButton } from "@/components/ui/AppleSignInButton";
+import { GoogleSignInButton } from "@/components/ui/GoogleSignInButton";
 import { ChevronLeft, Check, Calendar } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/lib/store/theme";
@@ -99,7 +101,7 @@ export default function RegisterScreen() {
     }
 
     try {
-      await register({
+      const result = await register({
         email,
         username,
         displayName,
@@ -109,11 +111,11 @@ export default function RegisterScreen() {
         acceptedTerms,
         acceptedPrivacy,
       });
-      Alert.alert(
-        "Hoş geldin! 🎉",
-        `Aramıza katıldın, ${displayName}. Hadi izlediklerini takip etmeye başla.`,
-        [{ text: "Başla", onPress: () => router.replace("/onboarding") }]
-      );
+      // E-posta doğrulama ekranına yönlendir
+      router.push({
+        pathname: "/(auth)/verify-email",
+        params: { email: result.email },
+      });
     } catch (err) {
       setError(apiError(err));
     }
@@ -456,6 +458,34 @@ export default function RegisterScreen() {
                 onPress={handleRegister}
                 loading={isLoading}
               />
+            </View>
+
+            {/* Ayraç */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                marginTop: 8,
+              }}
+            >
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
+              />
+              <Text style={{ fontSize: 12, color: colors.textDim }}>veya</Text>
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
+              />
+            </View>
+
+            {/* Apple ile giriş */}
+            <View style={{ marginTop: 8 }}>
+              <AppleSignInButton onError={setError} />
+            </View>
+
+            {/* Google ile giriş */}
+            <View style={{ marginTop: 8 }}>
+              <GoogleSignInButton onError={setError} />
             </View>
           </View>
 

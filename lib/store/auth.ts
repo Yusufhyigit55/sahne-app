@@ -29,7 +29,20 @@ type AuthState = {
     gender?: "male" | "female" | "unspecified";
     acceptedTerms: boolean;
     acceptedPrivacy: boolean;
-  }) => Promise<void>;
+  }) => Promise<{ requiresVerification: boolean; email: string }>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  resendCode: (email: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (
+    email: string,
+    code: string,
+    newPassword: string
+  ) => Promise<void>;
+  appleLogin: (
+    identityToken: string,
+    fullName?: { givenName?: string | null; familyName?: string | null } | null
+  ) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
   setUser: (user: User) => void;
@@ -56,14 +69,42 @@ export const useAuth = create<AuthState>((set) => ({
 
   register: async (payload) => {
     const { data } = await api.post("/api/auth/register", payload);
-
+    // Token gelmiyor — önce e-posta doğrulanmalı
+    return {
+      requiresVerification: data.requiresVerification ?? true,
+      email: data.email ?? payload.email,
+    };
+  },
+  verifyEmail: async (email, code) => {
+    const { data } = await api.post("/api/auth/verify-email", { email, code });
     await saveTokens(data.accessToken, data.refreshToken);
-
     queryClient.clear();
-
     set({ user: data.user, isAuthed: true, isLoading: false });
   },
-
+  resendCode: async (email) => {
+    await api.post("/api/auth/resend-code", { email });
+  },
+  forgotPassword: async (email) => {
+    await api.post("/api/auth/forgot-password", { email });
+  },
+  resetPassword: async (email, code, newPassword) => {
+    await api.post("/api/auth/reset-password", { email, code, newPassword });
+  },
+  appleLogin: async (identityToken, fullName) => {
+    const { data } = await api.post("/api/auth/apple", {
+      identityToken,
+      fullName,
+    });
+    await saveTokens(data.accessToken, data.refreshToken);
+    queryClient.clear();
+    set({ user: data.user, isAuthed: true, isLoading: false });
+  },
+  googleLogin: async (idToken) => {
+    const { data } = await api.post("/api/auth/google", { idToken });
+    await saveTokens(data.accessToken, data.refreshToken);
+    queryClient.clear();
+    set({ user: data.user, isAuthed: true, isLoading: false });
+  },
   logout: async () => {
     await clearTokens();
 
