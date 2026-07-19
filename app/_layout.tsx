@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/store/auth";
 import { useTheme } from "@/lib/store/theme";
 import { IntroSplash } from "@/components/ui/IntroSplash";
 import "../global.css";
+import { registerForPush } from "@/lib/push";
 
 function RootNavigator() {
   const { isAuthed, isLoading, loadSession } = useAuth();
@@ -34,6 +35,13 @@ function RootNavigator() {
       router.replace("/(tabs)");
     }
   }, [isAuthed, isLoading, segments]);
+
+  // Kullanıcı giriş yapınca push bildirimlerine kaydol
+  useEffect(() => {
+    if (isAuthed) {
+      registerForPush();
+    }
+  }, [isAuthed]);
 
   if (isLoading) {
     return (
