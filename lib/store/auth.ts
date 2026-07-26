@@ -12,6 +12,7 @@ export type User = {
   role: "user" | "moderator" | "admin";
   theme: "dark" | "beige";
   language: "tr" | "en";
+  hasPassword?: boolean;
 };
 
 type AuthState = {

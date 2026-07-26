@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -152,7 +153,8 @@ export default function SettingsScreen() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
   useEffect(() => {
     if (s) {
       setDisplayName(s.displayName);
@@ -288,33 +290,26 @@ export default function SettingsScreen() {
   };
 
   const handleDelete = () => {
-    Alert.prompt(
-      "Hesabı Sil",
-      "Bu işlem GERİ ALINAMAZ. Tüm verilerin kalıcı olarak silinecek.\n\nOnaylamak için şifreni gir:",
-      [
-        { text: "Vazgeç", style: "cancel" },
-        {
-          text: "Hesabı Sil",
-          style: "destructive",
-          onPress: (password?: string) => {
-            if (!password) return;
+    setDeletePassword("");
+    setDeleteModalOpen(true);
+  };
 
-            deleteAcc.mutate(password, {
-              onSuccess: () => {
-                Alert.alert("Hesap silindi", "Tüm verilerin kaldırıldı.");
-                logout();
-              },
-              onError: (err: any) =>
-                Alert.alert(
-                  "Hata",
-                  err?.response?.data?.error ?? "Silinemedi"
-                ),
-            });
-          },
-        },
-      ],
-      "secure-text"
-    );
+  const confirmDelete = () => {
+    const hasPw = user?.hasPassword ?? true;
+    // Şifreli hesapta şifre zorunlu; sosyal hesapta gerekmez
+    if (hasPw && !deletePassword) {
+      Alert.alert("Şifre gerekli", "Hesabını silmek için şifreni gir.");
+      return;
+    }
+    deleteAcc.mutate(hasPw ? deletePassword : "", {
+      onSuccess: () => {
+        setDeleteModalOpen(false);
+        Alert.alert("Hesap silindi", "Tüm verilerin kaldırıldı.");
+        logout();
+      },
+      onError: (err: any) =>
+        Alert.alert("Hata", err?.response?.data?.error ?? "Silinemedi"),
+    });
   };
 
   if (q.isLoading || !s) {
@@ -812,6 +807,113 @@ export default function SettingsScreen() {
           Tracks v1.0.0
         </Text>
       </ScrollView>
+
+      {/* Hesap silme onay modalı */}
+      <Modal
+        visible={deleteModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            justifyContent: "center",
+            paddingHorizontal: 28,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surfaceAlt,
+              borderRadius: 20,
+              padding: 22,
+              gap: 14,
+            }}
+          >
+            <Text
+              style={{ fontSize: 18, fontWeight: "800", color: colors.danger }}
+            >
+              Hesabı Sil
+            </Text>
+            <Text
+              style={{ fontSize: 13.5, lineHeight: 20, color: colors.textDim }}
+            >
+              Bu işlem GERİ ALINAMAZ. Tüm verilerin (kütüphane, listeler,
+              yorumlar, takipler) kalıcı olarak silinecek.
+            </Text>
+
+            {/* Şifreli hesapta şifre iste; sosyal hesapta gerekmez */}
+            {(user?.hasPassword ?? true) && (
+              <TextInput
+                value={deletePassword}
+                onChangeText={setDeletePassword}
+                placeholder="Şifreni gir"
+                placeholderTextColor={colors.textFaint}
+                secureTextEntry
+                autoCapitalize="none"
+                style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 15,
+                  color: colors.text,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              />
+            )}
+
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
+              <Pressable
+                onPress={() => setDeleteModalOpen(false)}
+                disabled={deleteAcc.isPending}
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  borderRadius: 12,
+                  paddingVertical: 13,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: colors.textDim,
+                  }}
+                >
+                  Vazgeç
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={confirmDelete}
+                disabled={deleteAcc.isPending}
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.danger,
+                  borderRadius: 12,
+                  paddingVertical: 13,
+                  alignItems: "center",
+                  opacity: deleteAcc.isPending ? 0.6 : 1,
+                }}
+              >
+                {deleteAcc.isPending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "800", color: "#fff" }}
+                  >
+                    Hesabı Sil
+                  </Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
