@@ -7,6 +7,7 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -582,27 +583,35 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
                   movieWatch.mutate({ status: "dropped" });
                   return;
                 }
-                Alert.prompt(
-                  "Yarıda Bıraktım",
-                  "Kaçıncı dakikada bıraktın? (opsiyonel)",
-                  [
-                    { text: "Vazgeç", style: "cancel" },
-                    {
-                      text: "Kaydet",
-                      onPress: (val?: string) => {
-                        const min = val ? parseInt(val, 10) : null;
-                        movieWatch.mutate({
-                          status: "dropped",
-                          stoppedAtMinute:
-                            min != null && !isNaN(min) && min > 0 ? min : null,
-                        });
+                // Alert.prompt sadece iOS'ta var; Android'de dakika sormadan işaretle
+                if (Platform.OS === "ios") {
+                  Alert.prompt(
+                    "Yarıda Bıraktım",
+                    "Kaçıncı dakikada bıraktın? (opsiyonel)",
+                    [
+                      { text: "Vazgeç", style: "cancel" },
+                      {
+                        text: "Kaydet",
+                        onPress: (val?: string) => {
+                          const min = val ? parseInt(val, 10) : null;
+                          movieWatch.mutate({
+                            status: "dropped",
+                            stoppedAtMinute:
+                              min != null && !isNaN(min) && min > 0 ? min : null,
+                          });
+                        },
                       },
-                    },
-                  ],
-                  "plain-text",
-                  record?.stoppedAtMinute ? String(record.stoppedAtMinute) : "",
-                  "number-pad"
-                );
+                    ],
+                    "plain-text",
+                    record?.stoppedAtMinute
+                      ? String(record.stoppedAtMinute)
+                      : "",
+                    "number-pad"
+                  );
+                } else {
+                  // Android: dakika opsiyonel, direkt dropped işaretle
+                  movieWatch.mutate({ status: "dropped", stoppedAtMinute: null });
+                }
               }}
               style={{
                 flexDirection: "row",
