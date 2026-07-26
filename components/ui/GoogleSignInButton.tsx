@@ -3,6 +3,7 @@ import { Pressable, Text, View, ActivityIndicator } from "react-native";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
+import * as AuthSession from "expo-auth-session";
 import { useTheme } from "@/lib/store/theme";
 import { useAuth } from "@/lib/store/auth";
 
@@ -22,9 +23,16 @@ export function GoogleSignInButton({ onError }: Props) {
   const { googleLogin } = useAuth();
   const [busy, setBusy] = useState(false);
 
+  const redirectUri = AuthSession.makeRedirectUri({
+    native:
+      "com.googleusercontent.apps.1018077345707-7rb7ofqta87sehilk6t96h66mnko573v:/oauth2redirect/google",
+  });
+
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: IOS_CLIENT_ID,
     webClientId: WEB_CLIENT_ID,
+    scopes: ["profile", "email"],
+    redirectUri,
   });
 
   useEffect(() => {
