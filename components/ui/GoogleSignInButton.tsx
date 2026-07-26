@@ -13,6 +13,8 @@ const IOS_CLIENT_ID =
   "1018077345707-7rb7ofqta87sehilk6t96h66mnko573v.apps.googleusercontent.com";
 const WEB_CLIENT_ID =
   "1018077345707-1cun29le2h37arvkrsu9t7ritfl1j548.apps.googleusercontent.com";
+  const ANDROID_CLIENT_ID =
+  "1018077345707-gnlu2agfe2fn9gr0rip7iaffpf3h989g.apps.googleusercontent.com";
 
 type Props = {
   onError?: (message: string) => void;
@@ -31,6 +33,7 @@ export function GoogleSignInButton({ onError }: Props) {
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: IOS_CLIENT_ID,
     webClientId: WEB_CLIENT_ID,
+    androidClientId: ANDROID_CLIENT_ID,
     scopes: ["profile", "email"],
     redirectUri,
   });
