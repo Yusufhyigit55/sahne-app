@@ -1,6 +1,7 @@
 // components/social/PollCard.tsx : Tek bir anketi gösterir; oy alma, sonuç yüzdeleri, spoiler bulanıklığı ve silme içerir.
 import { useState } from "react";
-import { View, Text, Pressable, Alert } from "react-native";
+import { View, Text, Pressable, Alert, Animated } from "react-native";
+import { useRef, useEffect } from "react";
 import { Trash2, Lock, EyeOff } from "lucide-react-native";
 import { useTheme } from "@/lib/store/theme";
 import { useAuth } from "@/lib/store/auth";
@@ -10,7 +11,42 @@ import {
   useVotePoll,
   useDeletePoll,
 } from "@/lib/queries/poll";
+/** Anket seçeneği arka plan barı — yüzde değişince yumuşak büyür */
+function AnimatedBar({
+  pct,
+  color,
+}: {
+  pct: number;
+  color: string;
+}) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    Animated.timing(widthAnim, {
+      toValue: pct,
+      duration: 450,
+      useNativeDriver: false, // width animasyonu native driver desteklemez
+    }).start();
+  }, [pct]);
+
+  const widthInterpolated = widthAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ["0%", "100%"],
+  });
+
+  return (
+    <Animated.View
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: widthInterpolated,
+        backgroundColor: color,
+      }}
+    />
+  );
+}
 type Props = {
   poll: Poll;
   type: string;
@@ -180,19 +216,11 @@ export function PollCard({ poll, type, tmdbId, watched }: Props) {
                   backgroundColor: colors.surfaceAlt,
                 }}
               >
-                {/* Sonuç dolgusu (arka plan bar) */}
+                {/* Sonuç dolgusu (arka plan bar) — yumuşak animasyon */}
                 {pct != null && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: `${pct}%`,
-                      backgroundColor: selected
-                        ? colors.accentSoft
-                        : colors.surfaceRaised,
-                    }}
+                  <AnimatedBar
+                    pct={pct}
+                    color={selected ? colors.accentSoft : colors.surfaceRaised}
                   />
                 )}
 

@@ -13,7 +13,7 @@ import "../global.css";
 import { registerForPush } from "@/lib/push";
 
 function RootNavigator() {
-  const { isAuthed, isLoading, loadSession } = useAuth();
+  const { isAuthed, isLoading, loadSession, user } = useAuth();
   const { colors, name } = useTheme();
 
   const segments = useSegments();
@@ -28,13 +28,36 @@ function RootNavigator() {
 
     const inAuthGroup = segments[0] === "(auth)";
     const inPublicGroup = segments[0] === "legal";
+    const inSetup = segments[0] === "setup";
 
+    // Giriş yapmamış → login (auth/legal dışındaysa)
     if (!isAuthed && !inAuthGroup && !inPublicGroup) {
       router.replace("/(auth)/login");
-    } else if (isAuthed && inAuthGroup) {
-      router.replace("/(tabs)");
+      return;
     }
-  }, [isAuthed, isLoading, segments]);
+
+    if (isAuthed) {
+      const needsSetup = user != null && !user.onboarded;
+
+      // Kurulum tamamlanmamış → setup ekranına (zaten orada değilse)
+      if (needsSetup && !inSetup) {
+        router.replace("/setup");
+        return;
+      }
+
+      // Kurulum tamam ama hâlâ auth ekranındaysa → tabs
+      if (!needsSetup && inAuthGroup) {
+        router.replace("/(tabs)");
+        return;
+      }
+
+      // Kurulum bittiği hâlde setup ekranında kaldıysa → tabs
+      if (!needsSetup && inSetup) {
+        router.replace("/(tabs)");
+        return;
+      }
+    }
+  }, [isAuthed, isLoading, segments, user]);
 
   // Kullanıcı giriş yapınca push bildirimlerine kaydol
   useEffect(() => {
@@ -71,7 +94,7 @@ function RootNavigator() {
       >
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="setup" />
         <Stack.Screen name="share-card" />
         <Stack.Screen name="stats" />
         <Stack.Screen name="together/[username]" />

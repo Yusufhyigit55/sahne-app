@@ -11,10 +11,8 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Bell, X, Sparkles, Calendar } from "lucide-react-native";import { useTheme } from "@/lib/store/theme";
 import { useContinueWatching } from "@/lib/queries/home";
-import { useFeed } from "@/lib/queries/social";
 import { useRecommendations, useDismissRec } from "@/lib/queries/recommend";
 import { useCalendar, formatAirDate } from "@/lib/queries/calendar";
-import { FeedItem } from "@/components/social/FeedItem";
 import {
   SCREEN_PADDING,
   spacing,
@@ -28,13 +26,11 @@ export default function HomeScreen() {
   const { colors } = useTheme();
 
   const continueQ = useContinueWatching();
-  const feedQ = useFeed();
   const recsQ = useRecommendations();
   const calendarQ = useCalendar();
   const dismiss = useDismissRec();
 
   const items = continueQ.data ?? [];
-  const feed = feedQ.data ?? [];
   const recs = recsQ.data ?? [];
   const upcoming = calendarQ.data ?? [];
 
@@ -48,12 +44,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={continueQ.isRefetching}
-            onRefresh={() => {
-              continueQ.refetch();
-              feedQ.refetch();
-              recsQ.refetch();
-              calendarQ.refetch();
-            }}
+            
             tintColor={colors.accent}
           />
         }
@@ -73,11 +64,11 @@ export default function HomeScreen() {
             style={{
               fontSize: fontSize.xxl,
               fontWeight: fontWeight.heavy,
-              color: colors.text,
-              letterSpacing: -0.3,
+              color: colors.accent,
+              letterSpacing: 1,
             }}
           >
-            Sahne
+            TRACKS
           </Text>
 
           <Pressable
@@ -564,54 +555,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ---- Akış ---- */}
-        <View
-          style={{
-            paddingHorizontal: SCREEN_PADDING,
-            marginTop: spacing.section,
-            gap: spacing.sm,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: fontSize.xl,
-              fontWeight: fontWeight.heavy,
-              color: colors.text,
-              marginBottom: spacing.sm,
-            }}
-          >
-            Akış
-          </Text>
-
-          {feedQ.isLoading ? (
-            <View style={{ paddingVertical: spacing.xxl, alignItems: "center" }}>
-              <ActivityIndicator color={colors.accent} />
-            </View>
-          ) : feed.length === 0 ? (
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: radius.xl,
-                padding: spacing.xxl,
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: fontSize.md,
-                  color: colors.textDim,
-                  textAlign: "center",
-                  lineHeight: 22,
-                }}
-              >
-                Takip ettiğin kimse yok.{"\n"}
-                Arkadaşlarını bul, aktivitelerini gör.
-              </Text>
-            </View>
-          ) : (
-            feed.map((item: any) => <FeedItem key={item.id} item={item} />)
-          )}
-        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );

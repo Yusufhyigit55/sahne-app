@@ -10,6 +10,7 @@ export function PosterCard({
   year,
   width = 112,
   onPress,
+  onLongPress,
   subtitle,
 }: {
   title: string;
@@ -17,6 +18,7 @@ export function PosterCard({
   year?: string | number | null;
   width?: number;
   onPress: () => void;
+  onLongPress?: () => void;
   subtitle?: string;
 }) {
   const { colors } = useTheme();
@@ -43,6 +45,8 @@ export function PosterCard({
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={300}
       onPressIn={pressIn}
       onPressOut={pressOut}
       style={{ width }}

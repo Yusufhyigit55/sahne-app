@@ -12,6 +12,7 @@ declare module "lucide-react-native" {
   export const Info: LucideIcon;
   export const Camera: LucideIcon;
   export const Upload: LucideIcon;
+  export const Download: LucideIcon;
   import type { FC } from "react";
   import type { SvgProps } from "react-native-svg";
 
@@ -31,6 +32,7 @@ declare module "lucide-react-native" {
   export const ChevronLeft: LucideIcon;
   export const ChevronRight: LucideIcon;
   export const Check: LucideIcon;
+  export const UserPlus: LucideIcon;
   export const Star: LucideIcon;
   export const Heart: LucideIcon;
   export const ThumbsUp: LucideIcon;

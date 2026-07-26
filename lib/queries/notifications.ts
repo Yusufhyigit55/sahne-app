@@ -42,11 +42,14 @@ export type Notification = {
 };
 
 /** Bildirim listesi */
-export function useNotifications() {
+export function useNotifications(
+  category?: "notifications" | "activity"
+) {
   return useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", category ?? "all"],
     queryFn: async () => {
-      const { data } = await api.get("/api/notifications");
+      const qs = category ? `?category=${category}` : "";
+      const { data } = await api.get(`/api/notifications${qs}`);
       return data as {
         items: Notification[];
         total: number;

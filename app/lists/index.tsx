@@ -2,6 +2,8 @@
 import { useState } from "react";
 import {
   View,
+  KeyboardAvoidingView,
+  Platform,
   Text,
   ScrollView,
   Pressable,
@@ -232,7 +234,10 @@ export default function ListsScreen() {
         transparent
         onRequestClose={() => setModalOpen(false)}
       >
-        <View style={{ flex: 1, justifyContent: "flex-end" }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1, justifyContent: "flex-end" }}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
           <Pressable
             style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
             onPress={() => setModalOpen(false)}
@@ -369,7 +374,7 @@ export default function ListsScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

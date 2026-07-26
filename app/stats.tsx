@@ -286,7 +286,77 @@ export default function StatsScreen() {
               </CardHint>
             </Card>
           )}
-
+          {/* En sık favori seçtiğin karakterler (her iki sekmede aynı — genel) */}
+          {stats.topCharacters?.length > 0 && (
+            <Card colors={colors}>
+              <CardTitle colors={colors}>
+                En sık favori seçtiğin karakterler
+              </CardTitle>
+              <View style={{ marginTop: 10, gap: 10 }}>
+                {stats.topCharacters.map((c, i) => (
+                  <View
+                    key={`${c.characterName}-${i}`}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor:
+                          i === 0 ? colors.accent : colors.surfaceAlt,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: "800",
+                          color: i === 0 ? colors.accentText : colors.textDim,
+                        }}
+                      >
+                        {i + 1}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 13.5,
+                          fontWeight: "700",
+                          color: colors.text,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {c.characterName}
+                      </Text>
+                      {!!c.actorName && (
+                        <Text
+                          style={{ fontSize: 11, color: colors.textDim }}
+                          numberOfLines={1}
+                        >
+                          {c.actorName}
+                        </Text>
+                      )}
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "800",
+                        color: colors.accent,
+                      }}
+                    >
+                      {c.count}×
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+          )}
           {/* Rozetler (her iki sekmede aynı — genel) */}
           <Card colors={colors}>
             <CardTitle colors={colors}>

@@ -66,7 +66,7 @@ export default function AboutScreen() {
               color: colors.text,
             }}
           >
-            Sahne
+            Tracks
           </Text>
           <Text style={{ fontSize: fontSize.sm, color: colors.textDim }}>
             Sürüm {APP_VERSION}

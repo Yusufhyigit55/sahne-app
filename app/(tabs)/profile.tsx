@@ -25,6 +25,7 @@ import { useTheme } from "@/lib/store/theme";
 import { useAuth } from "@/lib/store/auth";
 import { TasteProfileCard } from "@/components/profile/TasteProfileCard";
 import { useUserProfile } from "@/lib/queries/social";
+import { useLists } from "@/lib/queries/list";
 import { useStats } from "@/lib/queries/stats";
 import {
   useLibrary,
@@ -37,6 +38,7 @@ import {
 import { Chip } from "@/components/ui/Chip";
 import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown";
 import { LibraryCard } from "@/components/content/LibraryCard";
+import { PosterCard } from "@/components/content/PosterCard";
 import { StatCard } from "@/components/content/StatCard";
 import {
   SCREEN_PADDING,
@@ -49,12 +51,12 @@ import {
 
 const TABS: { key: LibraryTab; label: string }[] = [
   { key: "watched", label: "Kütüphanem" },
-  { key: "watchlist", label: "Bekleyenler" },
   { key: "favorites", label: "Favoriler" },
 ];
 
 const STATUSES: LibraryStatus[] = [
   "all",
+  "watchlist",
   "watching",
   "up_to_date",
   "completed",
@@ -76,12 +78,6 @@ function formatMinutes(min: number): string {
 /** Boş durum mesajı — sekme ve türe göre */
 function emptyMessage(tab: LibraryTab, type: LibraryType): string {
   const isBook = type === "book";
-
-  if (tab === "watchlist") {
-    return isBook
-      ? "Okuma listen boş.\nSonra okumak istediklerini buraya ekle."
-      : "Bekleyen bir şey yok.\nSonra bakmak istediklerini buraya ekle.";
-  }
 
   if (tab === "favorites") {
     return isBook ? "Henüz favori kitabın yok." : "Henüz favori eklemedin.";
@@ -105,6 +101,7 @@ export default function ProfileScreen() {
   const username = user?.username ?? "";
 
   const profileQ = useUserProfile(username);
+  const listsQ = useLists();
   const libQ = useLibrary(username, tab, status, type);
   const statsQ = useStats(username);
 
@@ -358,6 +355,187 @@ export default function ProfileScreen() {
               </ScrollView>
             )}
 
+            {/* Son İzlenenler */}
+            {(profileQ.data?.user.recentlyWatched?.length ?? 0) > 0 && (
+              <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+                <Text
+                  style={{
+                    fontSize: fontSize.md,
+                    fontWeight: fontWeight.heavy,
+                    color: colors.text,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  Son İzlenenler
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    gap: spacing.md,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                  style={{ flexGrow: 0 }}
+                >
+                  {profileQ.data!.user.recentlyWatched.map((item) => (
+                    <PosterCard
+                      key={`${item.type}:${item.id}`}
+                      title={item.titleTr}
+                      poster={item.poster}
+                      width={92}
+                      onPress={() =>
+                        router.push(`/content/${item.type}/${item.id}`)
+                      }
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            {/* Favoriler — kütüphaneden ayrı, sıralı şerit */}
+            {(profileQ.data?.user.favorites?.length ?? 0) > 0 && (
+              <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+                <Text
+                  style={{
+                    fontSize: fontSize.md,
+                    fontWeight: fontWeight.heavy,
+                    color: colors.text,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  Favoriler
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    gap: spacing.md,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                  style={{ flexGrow: 0 }}
+                >
+                  {profileQ.data!.user.favorites.map((item) => (
+                    <PosterCard
+                      key={`fav-${item.type}:${item.id}`}
+                      title={item.titleTr}
+                      poster={item.poster}
+                      width={92}
+                      onPress={() =>
+                        router.push(`/content/${item.type}/${item.id}`)
+                      }
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            {/* Listeler — kapak + ad */}
+            {(listsQ.data?.lists?.length ?? 0) > 0 && (
+              <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: fontSize.md,
+                      fontWeight: fontWeight.heavy,
+                      color: colors.text,
+                    }}
+                  >
+                    Listeler
+                  </Text>
+                  <Pressable onPress={() => router.push("/lists")}>
+                    <Text
+                      style={{
+                        fontSize: fontSize.sm,
+                        fontWeight: "700",
+                        color: colors.accent,
+                      }}
+                    >
+                      Tümünü Gör
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    gap: spacing.md,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                  style={{ flexGrow: 0 }}
+                >
+                  {listsQ.data!.lists.map((l) => (
+                    <Pressable
+                      key={l.id}
+                      onPress={() => router.push(`/lists/${l.id}`)}
+                      style={{
+                        width: 150,
+                        borderRadius: 14,
+                        backgroundColor: colors.surface,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {/* Kapak kolajı */}
+                      <View style={{ flexDirection: "row", height: 84 }}>
+                        {l.covers && l.covers.length > 0 ? (
+                          l.covers.slice(0, 3).map((cover, i) => (
+                            <Image
+                              key={i}
+                              source={{ uri: cover }}
+                              style={{ flex: 1, height: "100%" }}
+                              contentFit="cover"
+                            />
+                          ))
+                        ) : (
+                          <View
+                            style={{
+                              flex: 1,
+                              backgroundColor: colors.surfaceAlt,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Text
+                              style={{ color: colors.textFaint, fontSize: 11 }}
+                            >
+                              Boş
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={{ padding: 10 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "800",
+                            color: colors.text,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {l.title}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: colors.textFaint,
+                            marginTop: 2,
+                          }}
+                        >
+                          {l.itemCount} içerik
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
             {/* Zevk Profili — sadece kendi profilinde */}
             <TasteProfileCard enabled />
 

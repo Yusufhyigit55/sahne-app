@@ -5,6 +5,7 @@ export type LibraryTab = "watched" | "watchlist" | "favorites";
 
 export type LibraryStatus =
   | "all"
+  | "watchlist"
   | "watching"
   | "up_to_date"
   | "completed"
@@ -63,7 +64,6 @@ export function useLibrary(
         status,
         type,
       });
-
       const { data } = await api.get(`/api/library?${qs.toString()}`);
       return data as {
         items: LibraryItem[];
@@ -73,5 +73,8 @@ export function useLibrary(
       };
     },
     enabled: !!username,
-  });
-}
+    // Kütüphane sık değişmez; 1 dk taze say, cache'ten anında göster
+    staleTime: 1000 * 60,
+    // Sekme/filtre değişince önceki veriyi tut (boş ekran yerine yumuşak geçiş)
+    placeholderData: (prev) => prev,
+  })};

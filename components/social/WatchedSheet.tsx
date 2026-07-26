@@ -44,6 +44,25 @@ export function WatchedSheet({
   const reviewQ = useEpisodeReview(tmdbId, season, episode, visible);
   const save = useSaveReview(tmdbId);
 
+  // Karakter oy istatistikleri (backend'den: sıralı + yüzdeli)
+  const charStats = new Map(
+    (reviewQ.data?.characterStats ?? []).map((s) => [
+      s.characterId,
+      { count: s.count, percent: s.percent },
+    ])
+  );
+  const charTotalVotes = (reviewQ.data?.characterStats ?? []).reduce(
+    (sum, s) => sum + s.count,
+    0
+  );
+
+  // Karakterleri en çok seçilenden aza sırala
+  const sortedCast = [...cast].sort((a, b) => {
+    const ca = charStats.get(a.id)?.count ?? 0;
+    const cb = charStats.get(b.id)?.count ?? 0;
+    return cb - ca;
+  });
+
   const [score, setScore] = useState<number | null>(null);
   const [reactions, setReactions] = useState<string[]>([]);
   const [favChar, setFavChar] = useState<number | null>(null);
@@ -198,8 +217,9 @@ export function WatchedSheet({
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ gap: 12, paddingHorizontal: 4 }}
                 >
-                  {cast.slice(0, 12).map((c) => {
+                  {sortedCast.slice(0, 12).map((c) => {
                     const active = favChar === c.id;
+                    const stat = charStats.get(c.id);
                     return (
                       <Pressable
                         key={c.id}
@@ -239,6 +259,20 @@ export function WatchedSheet({
                         >
                           {c.character || c.name}
                         </Text>
+
+                        {charTotalVotes > 0 && stat && (
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: "800",
+                              color: colors.accent,
+                              textAlign: "center",
+                            }}
+                          >
+                            %{stat.percent}
+                          </Text>
+                        )}
+
                         <Text
                           style={{
                             fontSize: 9.5,

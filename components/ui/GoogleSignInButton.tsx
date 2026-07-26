@@ -29,7 +29,10 @@ export function GoogleSignInButton({ onError }: Props) {
 
   useEffect(() => {
     if (response?.type === "success") {
-      const idToken = response.authentication?.idToken;
+      // idToken önce authentication'dan, yoksa params'tan (iOS'ta authentication boş gelebilir)
+      const idToken =
+        response.authentication?.idToken ??
+        (response.params as any)?.id_token;
       if (idToken) {
         setBusy(true);
         googleLogin(idToken)

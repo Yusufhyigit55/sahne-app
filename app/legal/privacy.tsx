@@ -65,7 +65,7 @@ export default function PrivacyScreen() {
 
         <H>1. Genel</H>
         <P>
-          Bu Gizlilik Politikası, Sahne uygulamasının hangi kişisel verileri
+          Bu Gizlilik Politikası, Tracks uygulamasının hangi kişisel verileri
           topladığını, nasıl kullandığını ve koruduğunu açıklar. Uygulamayı
           kullanarak bu politikayı kabul etmiş olursun.
         </P>

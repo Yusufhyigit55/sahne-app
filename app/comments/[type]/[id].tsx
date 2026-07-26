@@ -43,7 +43,7 @@ export default function CommentsScreen() {
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
   const [reportTarget, setReportTarget] = useState<Comment | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
+  const [spoilerRevealed, setSpoilerRevealed] = useState(false);
   const q = useComments({ targetType, contentId, season, episode, sort });
   const repliesQ = useReplies(expandedId ?? "", !!expandedId);
 
@@ -56,6 +56,9 @@ export default function CommentsScreen() {
     targetType === "episode"
       ? `S${season}B${episode}`
       : params.title ?? "";
+  // Yorumlar gizli mi? İzlenmemiş içerik + kullanıcı henüz "Yine de Göster"e basmadıysa
+  const commentsHidden =
+    !!q.data && !q.data.viewerWatched && !spoilerRevealed;
 
   return (
     <SafeAreaView
@@ -105,64 +108,94 @@ export default function CommentsScreen() {
           </View>
         </View>
 
-        {/* Spoiler uyarı bandı */}
-        {q.data && !q.data.viewerWatched && (
+        {/* Spoiler uyarı bandı — izlenmemiş ve henüz açılmamışsa */}
+        {q.data && !q.data.viewerWatched && !spoilerRevealed && (
           <View
             style={{
-              flexDirection: "row",
-              gap: 10,
-              alignItems: "flex-start",
+              gap: 12,
               margin: 18,
               marginBottom: 0,
               backgroundColor: colors.warnSoft,
               borderWidth: 1,
               borderColor: colors.warn,
               borderRadius: 12,
-              padding: 13,
+              padding: 16,
             }}
           >
-            <AlertTriangle size={17} color={colors.warn} />
-            <Text
+            <View
               style={{
-                flex: 1,
-                fontSize: 12.5,
-                lineHeight: 18,
-                fontWeight: "600",
-                color: colors.warn,
+                flexDirection: "row",
+                gap: 10,
+                alignItems: "flex-start",
               }}
             >
-              {targetType === "episode"
-                ? "Bu bölümü henüz izlemediniz. Yorumlar spoiler içerebilir."
-                : "Bu içeriği henüz izlemediniz. Yorumlar spoiler içerebilir."}
-            </Text>
+              <AlertTriangle size={18} color={colors.warn} />
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  lineHeight: 19,
+                  fontWeight: "600",
+                  color: colors.warn,
+                }}
+              >
+                {targetType === "episode"
+                  ? "Bu bölümü henüz izlemedin. Yorumlar ciddi spoiler içerebilir."
+                  : "Bu içeriği henüz izlemedin. Yorumlar ciddi spoiler içerebilir."}
+              </Text>
+            </View>
+
+            <Pressable
+              onPress={() => setSpoilerRevealed(true)}
+              style={{
+                backgroundColor: colors.warn,
+                borderRadius: 10,
+                paddingVertical: 11,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "800",
+                  color: colors.accentText,
+                }}
+              >
+                Yine de Göster
+              </Text>
+            </Pressable>
           </View>
         )}
 
-        {/* Sıralama */}
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 8,
-            paddingHorizontal: 18,
-            paddingVertical: 12,
-          }}
-        >
-          <Chip
-            label="En Popüler"
-            active={sort === "popular"}
-            onPress={() => setSort("popular")}
-            size="sm"
-          />
-          <Chip
-            label="En Yeni"
-            active={sort === "new"}
-            onPress={() => setSort("new")}
-            size="sm"
-          />
-        </View>
+        {/* Sıralama — sadece yorumlar görünürken */}
+        {!commentsHidden && (
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              paddingHorizontal: 18,
+              paddingVertical: 12,
+            }}
+          >
+            <Chip
+              label="En Popüler"
+              active={sort === "popular"}
+              onPress={() => setSort("popular")}
+              size="sm"
+            />
+            <Chip
+              label="En Yeni"
+              active={sort === "new"}
+              onPress={() => setSort("new")}
+              size="sm"
+            />
+          </View>
+        )}
 
-        {/* Yorum listesi */}
-        {q.isLoading ? (
+        {/* Yorum listesi — perde açıksa gizli */}
+        {commentsHidden ? (
+          <View style={{ flex: 1 }} />
+        ) : q.isLoading ? (
           <View
             style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
           >
@@ -245,15 +278,17 @@ export default function CommentsScreen() {
           />
         )}
 
-        {/* Yorum girişi */}
-        <CommentInput
-          targetType={targetType}
-          contentId={contentId}
-          season={season}
-          episode={episode}
-          replyTo={replyTo}
-          onCancelReply={() => setReplyTo(null)}
-        />
+        {/* Yorum girişi — perde açıkken gizli */}
+        {!commentsHidden && (
+          <CommentInput
+            targetType={targetType}
+            contentId={contentId}
+            season={season}
+            episode={episode}
+            replyTo={replyTo}
+            onCancelReply={() => setReplyTo(null)}
+          />
+        )}
       </KeyboardAvoidingView>
 
       {/* Şikayet paneli */}

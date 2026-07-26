@@ -65,7 +65,7 @@ export default function TermsScreen() {
 
         <H>1. Taraflar ve Kabul</H>
         <P>
-          Bu Kullanım Koşulları, Sahne mobil uygulamasını ("Uygulama") kullanan
+          Bu Kullanım Koşulları, Tracks mobil uygulamasını ("Uygulama") kullanan
           kişi ("Kullanıcı") ile Uygulamanın geliştiricisi arasındaki ilişkiyi
           düzenler. Uygulamaya kayıt olarak bu koşulları kabul etmiş olursun.
           Koşulları kabul etmiyorsan Uygulamayı kullanmamalısın.
@@ -73,10 +73,10 @@ export default function TermsScreen() {
 
         <H>2. Hizmetin Tanımı</H>
         <P>
-          Sahne; dizi, film ve kitapları takip etmeni, değerlendirmeni, listeler
+          Tracks; dizi, film ve kitapları takip etmeni, değerlendirmeni, listeler
           oluşturmanı ve diğer kullanıcılarla etkileşime geçmeni sağlayan bir
           içerik takip platformudur. Dizi ve film bilgileri TMDB, kitap
-          bilgileri Google Books servislerinden alınır. Sahne bu içerikleri
+          bilgileri Google Books servislerinden alınır. Tracks bu içerikleri
           barındırmaz, yalnızca referans gösterir.
         </P>
 
@@ -98,7 +98,7 @@ export default function TermsScreen() {
 
         <H>5. Spoiler Politikası</H>
         <P>
-          Sahne, izleme deneyimini korumak için spoiler yönetimi uygular. Spoiler
+          Tracks, izleme deneyimini korumak için spoiler yönetimi uygular. Spoiler
           içeren yorumları işaretlemen beklenir. İşaretlenmemiş spoiler paylaşımı,
           topluluk bildirimi ve moderatör onayı sonrası yaptırıma tabi tutulabilir.
         </P>

@@ -148,7 +148,7 @@ export function IntroSplash({ onDone }: { onDone: () => void }) {
 
       {/* Logo */}
       <View style={styles.logoWrap}>
-        <Animated.Text style={[styles.logo, logoStyle]}>SAHNE</Animated.Text>
+        <Animated.Text style={[styles.logo, logoStyle]}>TRACKS</Animated.Text>
 
         <Animated.View style={[styles.lineWrap, lineStyle]}>
           <LinearGradient

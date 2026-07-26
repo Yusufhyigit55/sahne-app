@@ -55,6 +55,7 @@ export default function LoginScreen() {
             gap: 28,
           }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           {/* Logo */}
           <View style={{ alignItems: "center", gap: 8 }}>

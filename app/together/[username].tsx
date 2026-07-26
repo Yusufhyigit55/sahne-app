@@ -21,6 +21,7 @@ export default function TogetherScreen() {
 
   const q = useTogether(username);
   const data = q.data;
+  const isLocked = (q.error as any)?.response?.status === 403;
 
   return (
     <SafeAreaView
@@ -72,6 +73,7 @@ export default function TogetherScreen() {
             alignItems: "center",
             justifyContent: "center",
             padding: SCREEN_PADDING,
+            gap: spacing.md,
           }}
         >
           <Text
@@ -79,10 +81,12 @@ export default function TogetherScreen() {
               color: colors.textDim,
               fontSize: fontSize.md,
               textAlign: "center",
+              lineHeight: 22,
             }}
           >
-            Öneri oluşturulamadı. İkinizin de biraz daha içerik beğenmesi
-            gerekebilir.
+            {isLocked
+              ? "Bu özellik gizli hesaplarda kullanılamaz. Birlikte Ne İzleyelim yalnızca açık hesaplarda ya da takipleştiğiniz kişilerle çalışır."
+              : "Öneri oluşturulamadı. İkinizin de biraz daha içerik beğenmesi gerekebilir."}
           </Text>
         </View>
       ) : (
@@ -158,8 +162,9 @@ export default function TogetherScreen() {
             )}
           </View>
 
-          {/* Öneriler */}
-          {data.recommendations.length > 0 && (
+          {/* Öneri Diziler */}
+          {data.recommendations.filter((r) => r.type === "series").length >
+            0 && (
             <View style={{ gap: spacing.md }}>
               <Text
                 style={{
@@ -168,12 +173,43 @@ export default function TogetherScreen() {
                   color: colors.text,
                 }}
               >
-                İkinize Öneriler
+                Birlikte İzleyebileceğiniz Diziler
               </Text>
               <View style={{ gap: spacing.md }}>
-                {data.recommendations.map((item) => (
-                  <PosterRow key={`${item.type}:${item.tmdbId}`} item={item} />
-                ))}
+                {data.recommendations
+                  .filter((r) => r.type === "series")
+                  .map((item) => (
+                    <PosterRow
+                      key={`${item.type}:${item.tmdbId}`}
+                      item={item}
+                    />
+                  ))}
+              </View>
+            </View>
+          )}
+
+          {/* Öneri Filmler */}
+          {data.recommendations.filter((r) => r.type === "movie").length >
+            0 && (
+            <View style={{ gap: spacing.md }}>
+              <Text
+                style={{
+                  fontSize: fontSize.lg,
+                  fontWeight: fontWeight.heavy,
+                  color: colors.text,
+                }}
+              >
+                Birlikte İzleyebileceğiniz Filmler
+              </Text>
+              <View style={{ gap: spacing.md }}>
+                {data.recommendations
+                  .filter((r) => r.type === "movie")
+                  .map((item) => (
+                    <PosterRow
+                      key={`${item.type}:${item.tmdbId}`}
+                      item={item}
+                    />
+                  ))}
               </View>
             </View>
           )}

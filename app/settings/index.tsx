@@ -17,15 +17,23 @@ import {
   LogOut,
   Trash2,
   Camera,
+  Download,
+  Upload,
 } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
+import * as DocumentPicker from "expo-document-picker";
+import * as Sharing from "expo-sharing";
+import { File, Paths } from "expo-file-system";
 import { useTheme } from "@/lib/store/theme";
 import { useAuth } from "@/lib/store/auth";
 import {
   useSettings,
   useUpdateSettings,
   useDeleteAccount,
+  useExportData,
+  useImportData,
+  type ImportSource,
 } from "@/lib/queries/settings";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
@@ -136,6 +144,8 @@ export default function SettingsScreen() {
   const q = useSettings();
   const update = useUpdateSettings();
   const deleteAcc = useDeleteAccount();
+  const exportData = useExportData();
+  const importData = useImportData();
 
   const s = q.data;
 
@@ -200,6 +210,83 @@ export default function SettingsScreen() {
     update.mutate({ theme: next });
   };
 
+  // ---- VERİ DIŞA AKTARMA ----
+  const handleExport = async () => {
+    try {
+      const { json, filename } = await exportData.mutateAsync();
+
+      // Geçici dosyaya yaz, sonra paylaş sayfasını aç
+      const file = new File(Paths.cache, filename);
+      if (file.exists) file.delete();
+      file.create();
+      file.write(json);
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(file.uri, {
+          mimeType: "application/json",
+          dialogTitle: "Tracks verilerini dışa aktar",
+          UTI: "public.json",
+        });
+      } else {
+        Alert.alert(
+          "Hazır",
+          `Verilerin ${filename} olarak kaydedildi.`
+        );
+      }
+    } catch (err) {
+      Alert.alert("Hata", "Veriler dışa aktarılamadı, tekrar dene.");
+    }
+  };
+
+  // ---- VERİ İÇE AKTARMA ----
+  const runImport = async (source: ImportSource) => {
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({
+        type: ["application/json", "text/csv", "text/comma-separated-values", "*/*"],
+        copyToCacheDirectory: true,
+      });
+
+      if (picked.canceled || !picked.assets?.[0]) return;
+
+      const asset = picked.assets[0];
+      const file = new File(asset.uri);
+      const content = await file.text();
+
+      if (!content || content.trim().length === 0) {
+        Alert.alert("Hata", "Seçilen dosya boş görünüyor.");
+        return;
+      }
+
+      const report = await importData.mutateAsync({ source, data: content });
+
+      Alert.alert(
+        "İçe Aktarma Tamamlandı",
+        `${report.added} kayıt eklendi.\n${report.skipped} kayıt eşleşmedi.\n${report.failed} hata.`
+      );
+    } catch (err: any) {
+      Alert.alert(
+        "Hata",
+        err?.response?.data?.error ??
+          "Dosya içe aktarılamadı. Doğru dosyayı seçtiğinden emin ol."
+      );
+    }
+  };
+
+  const handleImport = () => {
+    Alert.alert(
+      "Veri İçe Aktar",
+      "Hangi uygulamadan veri aktarıyorsun?",
+      [
+        { text: "Letterboxd (film)", onPress: () => runImport("letterboxd") },
+        { text: "Trakt (dizi/film)", onPress: () => runImport("trakt") },
+        { text: "Tracks yedeği", onPress: () => runImport("tracks") },
+        { text: "Vazgeç", style: "cancel" },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const handleDelete = () => {
     Alert.prompt(
       "Hesabı Sil",
@@ -250,7 +337,11 @@ export default function SettingsScreen() {
       style={{ flex: 1, backgroundColor: colors.bg }}
       edges={["top"]}
     >
-      <ScrollView contentContainerStyle={{ paddingBottom: 40, gap: 24 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40, gap: 24 }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Başlık */}
         <View
           style={{
@@ -508,6 +599,81 @@ export default function SettingsScreen() {
           />
         </Section>
 
+        {/* VERİLERİM */}
+        <Section title="Verilerim">
+          <Pressable
+            onPress={handleExport}
+            disabled={exportData.isPending}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+              opacity: exportData.isPending ? 0.6 : 1,
+            }}
+          >
+            {exportData.isPending ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <Download size={17} color={colors.text} />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: "600",
+                  color: colors.text,
+                }}
+              >
+                {exportData.isPending ? "Hazırlanıyor..." : "Verilerimi Dışa Aktar"}
+              </Text>
+              <Text
+                style={{ fontSize: 11.5, color: colors.textDim, marginTop: 2 }}
+              >
+                Tüm verini JSON dosyası olarak indir
+              </Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={handleImport}
+            disabled={importData.isPending}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              paddingVertical: 14,
+              paddingHorizontal: 16,
+              opacity: importData.isPending ? 0.6 : 1,
+            }}
+          >
+            {importData.isPending ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <Upload size={17} color={colors.text} />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 13.5,
+                  fontWeight: "600",
+                  color: colors.text,
+                }}
+              >
+                {importData.isPending ? "Aktarılıyor..." : "Veri İçe Aktar"}
+              </Text>
+              <Text
+                style={{ fontSize: 11.5, color: colors.textDim, marginTop: 2 }}
+              >
+                Letterboxd, Trakt veya Tracks yedeğinden aktar
+              </Text>
+            </View>
+          </Pressable>
+        </Section>
+
         {/* MODERASYON — sadece moderatör/admin görür */}
         {(user?.role === "moderator" || user?.role === "admin") && (
           <Section title="Moderasyon">
@@ -643,7 +809,7 @@ export default function SettingsScreen() {
             marginTop: 8,
           }}
         >
-          Sahne v1.0.0
+          Tracks v1.0.0
         </Text>
       </ScrollView>
     </SafeAreaView>

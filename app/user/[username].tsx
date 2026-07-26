@@ -2,6 +2,9 @@ import { useState } from "react";
 import {
   View,
   Text,
+  LayoutAnimation,
+  Platform,
+  UIManager,
   ScrollView,
   Pressable,
   ActivityIndicator,
@@ -23,6 +26,7 @@ import {
   useToggleBlock,
 } from "@/lib/queries/social";
 import { useStats } from "@/lib/queries/stats";
+import { PosterCard } from "@/components/content/PosterCard";
 import { useCompatibility } from "@/lib/queries/socialGraph";
 import { CompatibilityCard } from "@/components/social/CompatibilityCard";
 import { StatCard } from "@/components/content/StatCard";
@@ -33,7 +37,15 @@ import {
   fontWeight,
   radius,
   shadow,
+  
 } from "@/theme";
+// Android'de LayoutAnimation'ı etkinleştir
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 function formatMinutes(min: number): string {
   if (min < 60) return `${min} dk`;
@@ -330,7 +342,12 @@ export default function UserProfileScreen() {
               }}
             >
               <Pressable
-                onPress={() => follow.mutate(username)}
+                onPress={() => {
+                  LayoutAnimation.configureNext(
+                    LayoutAnimation.Presets.easeInEaseOut
+                  );
+                  follow.mutate(username);
+                }}
                 style={{
                   flex: 1,
                   backgroundColor: isFollowing
@@ -468,6 +485,101 @@ export default function UserProfileScreen() {
                 </ScrollView>
               </View>
             )}
+
+            {/* Son İzlenenler */}
+            {(user.recentlyWatched?.length ?? 0) > 0 && (
+              <View style={{ marginTop: spacing.section, gap: spacing.md }}>
+                <Text
+                  style={{
+                    fontSize: fontSize.xl,
+                    fontWeight: fontWeight.heavy,
+                    color: colors.text,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  Son İzlenenler
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    gap: spacing.md,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  {user.recentlyWatched.map((item) => (
+                    <PosterCard
+                      key={`recent-${item.type}:${item.id}`}
+                      title={item.titleTr}
+                      poster={item.poster}
+                      width={92}
+                      onPress={() =>
+                        router.push(`/content/${item.type}/${item.id}`)
+                      }
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Favoriler */}
+            {(user.favorites?.length ?? 0) > 0 && (
+              <View style={{ marginTop: spacing.section, gap: spacing.md }}>
+                <Text
+                  style={{
+                    fontSize: fontSize.xl,
+                    fontWeight: fontWeight.heavy,
+                    color: colors.text,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  Favoriler
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    gap: spacing.md,
+                    paddingHorizontal: SCREEN_PADDING,
+                  }}
+                >
+                  {user.favorites.map((item) => (
+                    <PosterCard
+                      key={`fav-${item.type}:${item.id}`}
+                      title={item.titleTr}
+                      poster={item.poster}
+                      width={92}
+                      onPress={() =>
+                        router.push(`/content/${item.type}/${item.id}`)
+                      }
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Kütüphanesini gör */}
+            <Pressable
+              onPress={() => router.push(`/lists?userId=${user.id}`)}
+              style={{
+                marginTop: spacing.section,
+                marginHorizontal: SCREEN_PADDING,
+                backgroundColor: colors.surface,
+                borderRadius: radius.lg,
+                paddingVertical: 15,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: fontSize.md,
+                  fontWeight: fontWeight.bold,
+                  color: colors.accent,
+                }}
+              >
+                Listelerini Gör
+              </Text>
+            </Pressable>
           </>
         )}
       </ScrollView>

@@ -82,6 +82,7 @@ export default function ForgotPasswordScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 24, gap: 24 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <View style={{ gap: 8 }}>
             <Text style={{ fontSize: 26, fontWeight: "800", color: colors.text }}>

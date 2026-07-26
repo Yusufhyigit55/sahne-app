@@ -56,6 +56,12 @@ export type UserProfile = {
     titleTr: string;
     poster: string | null;
   }[];
+  recentlyWatched: {
+    type: string;
+    id: string | number;
+    titleTr: string;
+    poster: string | null;
+  }[];
 };
 
 /** Sosyal feed — kronolojik */
@@ -84,15 +90,53 @@ export function useUserProfile(username: string) {
 /** Takip et / bırak */
 export function useToggleFollow() {
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: async (username: string) => {
       const { data } = await api.post("/api/social/follow", { username });
       return data as { status: "accepted" | "pending" | null };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["userProfile"] });
+    // Optimistic: butona basınca profil durumunu anında güncelle (backend beklenmez)
+    onMutate: async (username) => {
+      const key = ["userProfile", username];
+      await qc.cancelQueries({ queryKey: key });
+      const prev = qc.getQueryData<any>(key);
+
+      qc.setQueryData(key, (old: any) => {
+        if (!old?.user) return old;
+        const cur = old.user.followStatus;
+        // Takip ediyorsa/bekliyorsa → bırak (null); değilse → gizli hesapsa pending, değilse accepted
+        let next: "accepted" | "pending" | null;
+        let followerDelta = 0;
+        if (cur === "accepted") {
+          next = null;
+          followerDelta = -1;
+        } else if (cur === "pending") {
+          next = null;
+        } else {
+          next = old.user.isPrivate ? "pending" : "accepted";
+          if (next === "accepted") followerDelta = 1;
+        }
+        return {
+          ...old,
+          user: {
+            ...old.user,
+            followStatus: next,
+            followers: Math.max(0, (old.user.followers ?? 0) + followerDelta),
+          },
+        };
+      });
+
+      return { prev, key };
+    },
+    onError: (_e, _v, ctx: any) => {
+      if (ctx?.prev !== undefined) {
+        qc.setQueryData(ctx.key, ctx.prev);
+      }
+    },
+    onSettled: (_d, _e, username) => {
+      qc.invalidateQueries({ queryKey: ["userProfile", username] });
       qc.invalidateQueries({ queryKey: ["feed"] });
+      qc.invalidateQueries({ queryKey: ["followRequests"] });
     },
   });
 }

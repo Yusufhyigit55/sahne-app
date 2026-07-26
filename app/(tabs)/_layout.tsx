@@ -1,6 +1,5 @@
 import { Tabs } from "expo-router";
-import { View } from "react-native";
-import { Home, Search, Plus, Bell, User } from "lucide-react-native";
+import { Home, Search, Users, Bell, User } from "lucide-react-native";
 import { useTheme } from "@/lib/store/theme";
 
 export default function TabsLayout() {
@@ -38,24 +37,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="add"
+        name="social"
         options={{
-          title: "",
-          tabBarIcon: () => (
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 100,
-                backgroundColor: colors.accent,
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: -6,
-              }}
-            >
-              <Plus size={26} color={colors.accentText} strokeWidth={2.5} />
-            </View>
-          ),
+          title: "Sosyal",
+          tabBarIcon: ({ color }) => <Users size={22} color={color} />,
         }}
       />
       <Tabs.Screen

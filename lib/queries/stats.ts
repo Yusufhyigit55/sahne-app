@@ -4,6 +4,11 @@ import { api } from "@/lib/api";
 export type WeekPoint = { label: string; value: number };
 export type GenreCount = { name: string; count: number };
 export type RatedItem = { title: string; rating: number };
+export type TopCharacter = {
+  characterName: string;
+  actorName: string;
+  count: number;
+};
 
 export type MediaStats = {
   weeklyWatched: WeekPoint[];
@@ -43,6 +48,7 @@ export type UserStats = {
   };
   badges: Badge[];
   earnedBadgeCount: number;
+  topCharacters: TopCharacter[];
 };
 
 export function useStats(username: string) {

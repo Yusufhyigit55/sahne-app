@@ -16,7 +16,14 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sahnelabs.storykind",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.1018077345707-7rb7ofqta87sehilk6t96h66mnko573v"
+            ]
+          }
+        ]
       },
       "usesAppleSignIn": true
     },

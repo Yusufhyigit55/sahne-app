@@ -43,6 +43,7 @@ import { CastStrip } from "@/components/content/CastStrip";
 import { PosterCard } from "@/components/content/PosterCard";
 import { Chip } from "@/components/ui/Chip";
 import { WatchedSheet } from "@/components/social/WatchedSheet";
+import { MovieWatchedSheet } from "@/components/social/MovieWatchedSheet";
 import { StatusSheet } from "@/components/social/StatusSheet";
 import { CreatePollSheet } from "@/components/social/CreatePollSheet";
 import { PollCard } from "@/components/social/PollCard";
@@ -76,6 +77,7 @@ export default function ContentDetailScreen() {
   const [statusOpen, setStatusOpen] = useState(false);
   const [pollSheetOpen, setPollSheetOpen] = useState(false);
   const [listSheetOpen, setListSheetOpen] = useState(false);
+  const [movieSheetOpen, setMovieSheetOpen] = useState(false);
 
   const isSeries = type === "series";
   const tmdbId = Number(id);
@@ -98,24 +100,60 @@ export default function ContentDetailScreen() {
   const inWatchlist = record?.status === "watchlist";
   const hasStatus = record && record.status !== "none";
 
-  const handleToggle = (episode: number, isAired: boolean, name: string) => {
+const handleToggle = (episode: number, isAired: boolean, name: string) => {
     if (!isAired) {
       Alert.alert("Henüz yayınlanmadı", "Bu bölüm henüz yayınlanmamış.");
       return;
     }
 
-    toggleEp.mutate(
-      { season, episode },
-      {
-        onSuccess: (res) => {
-          if (res.watched) {
-            setSheetEp({ episode, name });
-          }
-        },
-      }
-    );
-  };
+    const episodes = seasonQ.data?.episodes ?? [];
+    const thisEp = episodes.find((e: any) => e.episode === episode);
+    const isCurrentlyWatched = !!thisEp?.watched;
 
+    // İşareti KALDIRMA (zaten izlenmiş) → doğrudan toggle, uyarı yok
+    if (isCurrentlyWatched) {
+      toggleEp.mutate(
+        { season, episode },
+        {
+          onSuccess: (res) => {
+            if (!res.watched) {
+              setSheetEp((cur) => (cur?.episode === episode ? null : cur));
+            }
+          },
+        }
+      );
+      return;
+    }
+
+    // İŞARETLEME: bu sezonda, bu bölümden ÖNCE yayınlanmış ama izlenmemiş bölüm var mı?
+    const priorUnwatched = episodes.filter(
+      (e: any) => e.isAired && !e.watched && e.episode < episode
+    );
+
+    const doMarkSingle = () => {
+      toggleEp.mutate({ season, episode });
+      setSheetEp({ episode, name });
+    };
+
+    const doMarkUpto = () => {
+      bulk.mutate({ scope: "upto", season, episode });
+      setSheetEp({ episode, name });
+    };
+
+    if (priorUnwatched.length > 0) {
+      Alert.alert(
+        "Önceki bölümler işaretsiz",
+        `Bu sezonda ${priorUnwatched.length} önceki bölüm izlenmedi olarak görünüyor. Ne yapmak istersin?`,
+        [
+          { text: "Önceki bölümleri de işaretle", onPress: doMarkUpto },
+          { text: "Yalnızca bu bölümü işaretle", onPress: doMarkSingle },
+          { text: "Vazgeç", style: "cancel" },
+        ]
+      );
+    } else {
+      doMarkSingle();
+    }
+  };
   const handleBulkSeason = () => {
     Alert.alert(
       "Sezonu İşaretle",
@@ -273,7 +311,11 @@ export default function ContentDetailScreen() {
             kind="tmdb"
             value={data.tmdbRating ?? data.externalRating}
           />
-          <RatingBadge kind="sahne" value={data.appRating} />
+          <RatingBadge
+            kind="sahne"
+            value={data.appRating}
+            count={data.appRatingCount}
+          />
 
           <Pressable
             onPress={() =>
@@ -368,7 +410,10 @@ export default function ContentDetailScreen() {
         >
           {/* Sonra İzle / Oku */}
           <Pressable
+            disabled={movieWatch.isPending || like.isPending}
             onPress={() => {
+              // Mutation sürerken tekrar basmayı engelle (çift toggle bug'ı)
+              if (movieWatch.isPending || like.isPending) return;
               if (type === "movie") {
                 movieWatch.mutate("watchlist");
               } else {
@@ -386,6 +431,7 @@ export default function ContentDetailScreen() {
               borderColor: inWatchlist ? colors.accent : colors.border,
               borderRadius: 11,
               paddingVertical: 11,
+              opacity: movieWatch.isPending || like.isPending ? 0.6 : 1,
             }}
           >
             <Bookmark
@@ -407,7 +453,7 @@ export default function ContentDetailScreen() {
             </Text>
           </Pressable>
 
-          {/* Beğen */}
+{/* Beğen */}
           <Pressable
             onPress={() => like.mutate("like")}
             style={{
@@ -426,9 +472,7 @@ export default function ContentDetailScreen() {
               size={16}
               color={record?.isLiked ? colors.accent : colors.textDim}
             />
-          </Pressable>
-
-          {/* Beğenmedim */}
+          </Pressable>          {/* Beğenmedim */}
           <Pressable
             onPress={() => like.mutate("dislike")}
             style={{
@@ -449,11 +493,13 @@ export default function ContentDetailScreen() {
             />
           </Pressable>
 
-          {/* Favori */}
+{/* Favori */}
           <Pressable
             onPress={() => like.mutate("favorite")}
             style={{
-              width: 46,
+              width: 54,
+              paddingVertical: 7,
+              gap: 3,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: record?.isFavorite
@@ -467,15 +513,29 @@ export default function ContentDetailScreen() {
             <Star
               size={16}
               color={record?.isFavorite ? colors.accent : colors.textDim}
+              fill={record?.isFavorite ? colors.accent : "transparent"}
             />
-          </Pressable>
-        </View>
+            <Text
+              style={{
+                fontSize: 9,
+                fontWeight: "700",
+                color: record?.isFavorite ? colors.accent : colors.textDim,
+              }}
+            >
+              Favori
+            </Text>
+          </Pressable>        </View>
 
         {/* Film için "İzledim" butonu */}
         {type === "movie" && (
           <View style={{ paddingHorizontal: 18, marginTop: 8 }}>
             <Pressable
-              onPress={() => movieWatch.mutate("completed")}
+              onPress={() => {
+                if (record?.status !== "completed") {
+                  movieWatch.mutate("completed");
+                }
+                setMovieSheetOpen(true);
+              }}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -513,39 +573,114 @@ export default function ContentDetailScreen() {
                 {record?.status === "completed" ? "İzledin ✓" : "İzledim"}
               </Text>
             </Pressable>
+
+            {/* Yarıda Bıraktım — dakika sorar */}
+            <Pressable
+              onPress={() => {
+                if (record?.status === "dropped") {
+                  // Zaten dropped → durumu kaldır
+                  movieWatch.mutate({ status: "dropped" });
+                  return;
+                }
+                Alert.prompt(
+                  "Yarıda Bıraktım",
+                  "Kaçıncı dakikada bıraktın? (opsiyonel)",
+                  [
+                    { text: "Vazgeç", style: "cancel" },
+                    {
+                      text: "Kaydet",
+                      onPress: (val?: string) => {
+                        const min = val ? parseInt(val, 10) : null;
+                        movieWatch.mutate({
+                          status: "dropped",
+                          stoppedAtMinute:
+                            min != null && !isNaN(min) && min > 0 ? min : null,
+                        });
+                      },
+                    },
+                  ],
+                  "plain-text",
+                  record?.stoppedAtMinute ? String(record.stoppedAtMinute) : "",
+                  "number-pad"
+                );
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 7,
+                marginTop: 8,
+                backgroundColor:
+                  record?.status === "dropped" ? colors.warnSoft : "transparent",
+                borderWidth: 1,
+                borderColor:
+                  record?.status === "dropped" ? colors.warn : colors.border,
+                borderRadius: 11,
+                paddingVertical: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color:
+                    record?.status === "dropped" ? colors.warn : colors.textDim,
+                }}
+              >
+                {record?.status === "dropped"
+                  ? record?.stoppedAtMinute
+                    ? `Yarıda bıraktın · ${record.stoppedAtMinute}. dk`
+                    : "Yarıda bıraktın"
+                  : "Yarıda Bıraktım"}
+              </Text>
+            </Pressable>
           </View>
         )}
 
-        {/* ---- İlerleme çubuğu ---- */}
+{/* ---- İlerleme çubuğu ---- */}
         {isSeries && watchedEp > 0 && (
-          <View style={{ paddingHorizontal: 18, marginTop: 14, gap: 6 }}>
+          <View style={{ paddingHorizontal: 18, marginTop: 16, gap: 9 }}>
             <View
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
+                alignItems: "flex-end",
               }}
             >
-              <Text style={{ fontSize: 12, color: colors.textDim }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color: colors.text,
+                }}
+              >
                 {watchedEp} / {totalEp} bölüm
               </Text>
-              <Text style={{ fontSize: 12, color: colors.textDim }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "900",
+                  color: colors.accent,
+                }}
+              >
                 %{Math.round(progress)}
               </Text>
             </View>
             <View
               style={{
-                height: 6,
-                backgroundColor: colors.surface,
-                borderRadius: 3,
+                height: 12,
+                backgroundColor: colors.surfaceAlt,
+                borderRadius: 6,
                 overflow: "hidden",
+                borderWidth: 1,
+                borderColor: colors.border,
               }}
             >
               <View
                 style={{
                   height: "100%",
                   width: `${progress}%`,
-                  backgroundColor: colors.accent,
-                }}
+                  backgroundColor: colors.accent,                }}
               />
             </View>
           </View>
@@ -833,6 +968,18 @@ export default function ContentDetailScreen() {
       )}
 
       {/* Durum Seçici */}
+      {type === "movie" && (
+        <MovieWatchedSheet
+          visible={movieSheetOpen}
+          onClose={() => setMovieSheetOpen(false)}
+          tmdbId={tmdbId}
+          title={data.titleTr ?? data.title ?? ""}
+          cast={data.cast ?? []}
+          initialRating={record?.rating ?? null}
+          initialReactions={record?.reactions ?? []}
+        />
+      )}
+
       <StatusSheet
         visible={statusOpen}
         onClose={() => setStatusOpen(false)}

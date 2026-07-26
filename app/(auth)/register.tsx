@@ -91,7 +91,7 @@ export default function RegisterScreen() {
     const age =
       (Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
     if (age < 13) {
-      setError("Sahne'yi kullanmak için en az 13 yaşında olmalısın");
+      setError("Tracks'yi kullanmak için en az 13 yaşında olmalısın");
       return;
     }
 
@@ -152,6 +152,7 @@ export default function RegisterScreen() {
             gap: 24,
           }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <View style={{ gap: 6 }}>
             <Text
@@ -160,7 +161,7 @@ export default function RegisterScreen() {
               Hesap Oluştur
             </Text>
             <Text style={{ fontSize: 13, color: colors.textDim }}>
-              Sahne'ye katıl, izlediklerini takip etmeye başla
+              Tracks'ye katıl, izlediklerini takip etmeye başla
             </Text>
           </View>
 

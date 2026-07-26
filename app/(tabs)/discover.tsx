@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Alert } from "react-native";
 import {
   View,
   Text,
@@ -16,6 +17,10 @@ import { useTheme } from "@/lib/store/theme";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { Chip } from "@/components/ui/Chip";
 import { PosterCard } from "@/components/content/PosterCard";
+import { StatusSheet } from "@/components/social/StatusSheet";
+import { api } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
+import type { WatchStatus } from "@/lib/queries/watch";
 import {
   useTrending,
   useSearch,
@@ -49,6 +54,27 @@ export default function DiscoverScreen() {
 
   const [tab, setTab] = useState<Tab>("series");
   const [query, setQuery] = useState("");
+  const qc = useQueryClient();
+
+  // Long-press ile hızlı işaretleme için sheet state'i
+  const [sheetItem, setSheetItem] = useState<ContentItem | null>(null);
+
+  const handleQuickStatus = async (status: WatchStatus) => {
+    if (!sheetItem) return;
+    const id = sheetItem.tmdbId ?? sheetItem.googleBooksId;
+    try {
+      await api.patch("/api/watch/status", {
+        type: sheetItem.type,
+        id,
+        status,
+      });
+      qc.invalidateQueries({ queryKey: ["library"] });
+      qc.invalidateQueries({ queryKey: ["watchStatus"] });
+      qc.invalidateQueries({ queryKey: ["continueWatching"] });
+    } catch (err: any) {
+      Alert.alert("Hata", err?.response?.data?.error ?? "İşlem başarısız");
+    }
+  };
 
   const isPerson = tab === "person";
   const isUser = tab === "user";
@@ -118,7 +144,10 @@ export default function DiscoverScreen() {
             key={t.key}
             label={t.label}
             active={tab === t.key}
-            onPress={() => setTab(t.key)}
+            onPress={() => {
+              setTab(t.key);
+              setQuery("");
+            }}
             size="sm"
           />
         ))}
@@ -136,6 +165,11 @@ export default function DiscoverScreen() {
           value={query}
           onChangeText={setQuery}
           placeholder={placeholder}
+          showSearchButton
+          onSubmit={() => {
+            // Arama zaten onChangeText'te otomatik; buton klavyeyi kapatır
+            // ve arama tuşu olmayan cihazlar için görünür tetikleyicidir.
+          }}
         />
       </View>
 
@@ -480,8 +514,25 @@ export default function DiscoverScreen() {
                   `/content/${item.type}/${item.tmdbId ?? item.googleBooksId}`
                 )
               }
+              onLongPress={() => setSheetItem(item)}
             />
           )}
+          
+ListHeaderComponent={
+            (items?.length ?? 0) > 0 ? (
+              <Text
+                style={{
+                  fontSize: fontSize.xs,
+                  color: colors.textFaint,
+                  textAlign: "center",
+                  paddingHorizontal: SCREEN_PADDING,
+                  paddingBottom: spacing.md,
+                }}
+              >
+                İpucu: Hızlıca işaretlemek için poster'a basılı tut
+              </Text>
+            ) : null
+          }
           ListEmptyComponent={
             <View style={{ alignItems: "center", padding: spacing.xxl }}>
               <Text style={{ fontSize: fontSize.md, color: colors.textDim }}>
@@ -491,6 +542,15 @@ export default function DiscoverScreen() {
           }
         />
       )}
+
+      {/* Hızlı durum işaretleme sheet'i (long-press ile açılır) */}
+      <StatusSheet
+        visible={sheetItem != null}
+        onClose={() => setSheetItem(null)}
+        type={(sheetItem?.type ?? "series") as "series" | "movie" | "book"}
+        current={null}
+        onSelect={(status) => handleQuickStatus(status)}
+      />
     </SafeAreaView>
   );
 }

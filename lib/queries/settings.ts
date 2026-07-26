@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, clearTokens } from "@/lib/api";
+import { api, clearTokens, getAccessToken } from "@/lib/api";
 
 export type NotifPrefs = {
   push: boolean;
@@ -82,6 +82,65 @@ export function useBlockedUsers(type: "block" | "mute") {
         avatar: string | null;
         blockedAt: string;
       }[];
+    },
+  });
+}
+// ---- VERİ AKTARIMI (export / import) ----
+
+export type ImportSource = "letterboxd" | "trakt" | "tracks";
+
+export type ImportReport = {
+  added: number;
+  skipped: number;
+  failed: number;
+  total: number;
+  skippedItems: { title: string; year?: number | null; reason: string }[];
+};
+
+/**
+ * Kullanıcının tüm verisini JSON string olarak indirir.
+ * axios yerine fetch kullanıyoruz çünkü endpoint dosya (attachment) döndürüyor
+ * ve ham metni almak istiyoruz.
+ */
+export function useExportData() {
+  return useMutation({
+    mutationFn: async (): Promise<{ json: string; filename: string }> => {
+      const token = await getAccessToken();
+      const res = await fetch(
+        "https://sahne-api.vercel.app/api/user/export",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Dışa aktarma başarısız");
+      }
+      const json = await res.text();
+      const filename = `tracks-verilerim-${new Date()
+        .toISOString()
+        .slice(0, 10)}.json`;
+      return { json, filename };
+    },
+  });
+}
+
+/** Dosya içeriğini ve kaynağı gönderip içe aktarır. */
+export function useImportData() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (args: {
+      source: ImportSource;
+      data: string;
+    }): Promise<ImportReport> => {
+      const { data } = await api.post("/api/user/import", args);
+      return data.report as ImportReport;
+    },
+    onSuccess: () => {
+      // İçe aktarma sonrası kütüphane/istatistikler değişmiş olabilir
+      qc.invalidateQueries({ queryKey: ["library"] });
+      qc.invalidateQueries({ queryKey: ["stats"] });
+      qc.invalidateQueries({ queryKey: ["settings"] });
     },
   });
 }

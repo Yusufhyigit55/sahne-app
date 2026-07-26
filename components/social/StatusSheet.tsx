@@ -65,6 +65,29 @@ const BOOK_OPTIONS: Option[] = [
   },
 ];
 
+const MOVIE_OPTIONS: Option[] = [
+  {
+    key: "completed",
+    label: "İzledim",
+    desc: "İzlemeyi tamamladım",
+  },
+  {
+    key: "watchlist",
+    label: "İzleme Listesine Taşı",
+    desc: "Sonra izleyeceğim",
+  },
+  {
+    key: "dropped",
+    label: "Yarım Bıraktım",
+    desc: "Bitirmedim",
+  },
+  {
+    key: "none",
+    label: "Durumu Kaldır",
+    desc: "İzleme kaydını sıfırla",
+  },
+];
+
 export function StatusSheet({
   visible,
   onClose,
@@ -80,7 +103,12 @@ export function StatusSheet({
 }) {
   const { colors } = useTheme();
 
-  const options = type === "book" ? BOOK_OPTIONS : SERIES_OPTIONS;
+  const options =
+    type === "book"
+      ? BOOK_OPTIONS
+      : type === "movie"
+      ? MOVIE_OPTIONS
+      : SERIES_OPTIONS;
 
   return (
     <Modal

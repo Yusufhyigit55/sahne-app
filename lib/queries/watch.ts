@@ -14,6 +14,8 @@ export type WatchStatus =
 export type WatchRecord = {
   status: WatchStatus;
   rating: number | null;
+  reactions?: string[];
+  stoppedAtMinute?: number | null;
   isLiked: boolean;
   isDisliked: boolean;
   isFavorite: boolean;
@@ -25,6 +27,8 @@ export type WatchRecord = {
 const EMPTY_RECORD: WatchRecord = {
   status: "none",
   rating: null,
+  reactions: [],
+  stoppedAtMinute: null,
   isLiked: false,
   isDisliked: false,
   isFavorite: false,
@@ -133,9 +137,9 @@ export function useToggleEpisode(tmdbId: number) {
     onSettled: () => {
       qc.invalidateQueries({
         queryKey: ["continueWatching"],
-        refetchType: "none",
+        refetchType: "active",
       });
-      qc.invalidateQueries({ queryKey: ["library"], refetchType: "none" });
+      qc.invalidateQueries({ queryKey: ["library"], refetchType: "active" });
     },
   });
 }
@@ -146,8 +150,9 @@ export function useBulkWatch(tmdbId: number) {
 
   return useMutation({
     mutationFn: async (vars: {
-      scope: "season" | "all";
+      scope: "season" | "all" | "upto";
       season?: number;
+      episode?: number;
       watchedAt?: string;
       isApproximate?: boolean;
     }) => {
@@ -266,7 +271,7 @@ export function useToggleLike(type: string, id: string | number) {
     },
 
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["library"], refetchType: "none" });
+      qc.invalidateQueries({ queryKey: ["library"], refetchType: "active" });
     },
   });
 }
@@ -274,79 +279,86 @@ export function useToggleLike(type: string, id: string | number) {
 /** Filmi izledim / izleme listesine ekle */
 export function useMovieWatch(tmdbId: number) {
   const qc = useQueryClient();
-
   return useMutation({
-    mutationFn: async (status: "completed" | "watchlist" | "dropped") => {
+    mutationFn: async (
+      arg:
+        | "completed"
+        | "watchlist"
+        | "dropped"
+        |  {
+            status?: "completed" | "watchlist" | "dropped";
+            rating?: number | null;
+            reactions?: string[];
+            watchedAt?: string;
+            stoppedAtMinute?: number | null;
+          }
+    ) => {
+      // String kısayolu → obje'ye normalize et (geriye uyumlu)
+      const payload = typeof arg === "string" ? { status: arg } : arg;
       const { data } = await api.post("/api/watch/movie", {
         tmdbId,
-        status,
+        ...payload,
       });
       return data;
     },
-
-    onMutate: async (status) => {
+    onMutate: async (arg) => {
+      // Sadece status değişiminde optimistic; rating/reactions için dokunma
+      const status = typeof arg === "string" ? arg : arg.status;
       const statusKey = ["watchStatus", "movie", String(tmdbId)];
       await qc.cancelQueries({ queryKey: statusKey });
-
       const prev = qc.getQueryData(statusKey);
 
-      qc.setQueryData(statusKey, (old: any) => {
-        const base = old ?? {
-          record: null,
-          watchedEpisodes: 0,
-          totalEpisodes: 0,
-        };
-
-        const rec: WatchRecord = base.record ?? EMPTY_RECORD;
-        const same = rec.status === status;
-
-        return {
-          ...base,
-          record: {
-            ...rec,
-            status: (same ? "none" : status) as WatchStatus,
-          },
-        };
-      });
-
+      if (status) {
+        qc.setQueryData(statusKey, (old: any) => {
+          const base = old ?? {
+            record: null,
+            watchedEpisodes: 0,
+            totalEpisodes: 0,
+          };
+          const rec: WatchRecord = base.record ?? EMPTY_RECORD;
+          const same = rec.status === status;
+          return {
+            ...base,
+            record: {
+              ...rec,
+              status: (same ? "none" : status) as WatchStatus,
+            },
+          };
+        });
+      }
       return { prev, statusKey };
     },
-
     onError: (_e, _v, ctx) => {
       if (ctx?.prev !== undefined) {
         qc.setQueryData(ctx.statusKey, ctx.prev);
       }
     },
-
     onSuccess: (data) => {
       const statusKey = ["watchStatus", "movie", String(tmdbId)];
-
       qc.setQueryData(statusKey, (old: any) => {
         const base = old ?? {
           record: null,
           watchedEpisodes: 0,
           totalEpisodes: 0,
         };
-
         if (data.status === null) {
           return { ...base, record: null };
         }
-
         return {
           ...base,
           record: {
             ...(base.record ?? EMPTY_RECORD),
-            status: data.status,
+            status: data.status ?? base.record?.status,
+            rating: data.rating ?? base.record?.rating,
           },
         };
       });
     },
-
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["library"], refetchType: "none" });
+      qc.invalidateQueries({ queryKey: ["library"], refetchType: "active" });
       qc.invalidateQueries({
         queryKey: ["continueWatching"],
-        refetchType: "none",
+        refetchType: "active",
       });
     },
   });
@@ -394,10 +406,10 @@ export function useSetStatus(type: string, id: string | number) {
     },
 
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["library"], refetchType: "none" });
+      qc.invalidateQueries({ queryKey: ["library"], refetchType: "active" });
       qc.invalidateQueries({
         queryKey: ["continueWatching"],
-        refetchType: "none",
+        refetchType: "active",
       });
     },
   });
