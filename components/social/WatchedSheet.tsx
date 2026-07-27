@@ -28,6 +28,7 @@ type Props = {
   episode: number;
   episodeName: string;
   cast: Cast[];
+  onRemoveWatch?: () => void;
 };
 
 export function WatchedSheet({
@@ -38,6 +39,7 @@ export function WatchedSheet({
   episode,
   episodeName,
   cast,
+  onRemoveWatch,
 }: Props) {
   const { colors } = useTheme();
 
@@ -288,6 +290,28 @@ export function WatchedSheet({
                   })}
                 </ScrollView>
               </View>
+            )}
+
+            {/* İzlemedim olarak işaretle (izleme kaydını sil) */}
+            {onRemoveWatch && (
+              <Pressable
+                onPress={onRemoveWatch}
+                style={{
+                  alignItems: "center",
+                  paddingVertical: 10,
+                  marginTop: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: "700",
+                    color: colors.danger,
+                  }}
+                >
+                  İzlemedim olarak işaretle
+                </Text>
+              </Pressable>
             )}
 
             {/* Butonlar */}

@@ -59,15 +59,13 @@ export const useAuth = create<AuthState>((set) => ({
       emailOrUsername,
       password,
     });
-
     await saveTokens(data.accessToken, data.refreshToken);
-
     // Önceki kullanıcının verisi kalmasın
     queryClient.clear();
-
-    set({ user: data.user, isAuthed: true, isLoading: false });
+    // Tam kullanıcı bilgisi (hasPassword, email vb.) için me'den çek
+    const me = await api.get("/api/auth/me");
+    set({ user: me.data.user, isAuthed: true, isLoading: false });
   },
-
   register: async (payload) => {
     const { data } = await api.post("/api/auth/register", payload);
     // Token gelmiyor — önce e-posta doğrulanmalı
@@ -80,7 +78,8 @@ export const useAuth = create<AuthState>((set) => ({
     const { data } = await api.post("/api/auth/verify-email", { email, code });
     await saveTokens(data.accessToken, data.refreshToken);
     queryClient.clear();
-    set({ user: data.user, isAuthed: true, isLoading: false });
+    const me = await api.get("/api/auth/me");
+    set({ user: me.data.user, isAuthed: true, isLoading: false });
   },
   resendCode: async (email) => {
     await api.post("/api/auth/resend-code", { email });
@@ -98,13 +97,15 @@ export const useAuth = create<AuthState>((set) => ({
     });
     await saveTokens(data.accessToken, data.refreshToken);
     queryClient.clear();
-    set({ user: data.user, isAuthed: true, isLoading: false });
+    const me = await api.get("/api/auth/me");
+    set({ user: me.data.user, isAuthed: true, isLoading: false });
   },
   googleLogin: async (idToken) => {
     const { data } = await api.post("/api/auth/google", { idToken });
     await saveTokens(data.accessToken, data.refreshToken);
     queryClient.clear();
-    set({ user: data.user, isAuthed: true, isLoading: false });
+    const me = await api.get("/api/auth/me");
+    set({ user: me.data.user, isAuthed: true, isLoading: false });
   },
   logout: async () => {
     await clearTokens();

@@ -111,18 +111,10 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
     const thisEp = episodes.find((e: any) => e.episode === episode);
     const isCurrentlyWatched = !!thisEp?.watched;
 
-    // İşareti KALDIRMA (zaten izlenmiş) → doğrudan toggle, uyarı yok
+    // Zaten izlenmiş bölüme basınca → değerlendirme sheet'ini aç (geçmişe erişim)
+    // İzlemeyi kaldırma sheet içinden yapılır.
     if (isCurrentlyWatched) {
-      toggleEp.mutate(
-        { season, episode },
-        {
-          onSuccess: (res) => {
-            if (!res.watched) {
-              setSheetEp((cur) => (cur?.episode === episode ? null : cur));
-            }
-          },
-        }
-      );
+      setSheetEp({ episode, name });
       return;
     }
 
@@ -530,51 +522,81 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
         {/* Film için "İzledim" butonu */}
         {type === "movie" && (
           <View style={{ paddingHorizontal: 18, marginTop: 8 }}>
-            <Pressable
-              onPress={() => {
-                if (record?.status !== "completed") {
-                  movieWatch.mutate("completed");
-                }
-                setMovieSheetOpen(true);
-              }}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 7,
-                backgroundColor:
-                  record?.status === "completed"
-                    ? colors.accent
-                    : colors.surface,
-                borderWidth: record?.status === "completed" ? 0 : 1,
-                borderColor: colors.border,
-                borderRadius: 11,
-                paddingVertical: 13,
-              }}
-            >
-              <Check
-                size={16}
-                color={
-                  record?.status === "completed"
-                    ? colors.accentText
-                    : colors.textDim
-                }
-                strokeWidth={2.5}
-              />
-              <Text
+<View style={{ flexDirection: "row", gap: 8 }}>
+              {/* İzledim / İzledin — durum toggle (sheet açmaz) */}
+              <Pressable
+                onPress={() => movieWatch.mutate("completed")}
+                disabled={movieWatch.isPending}
                 style={{
-                  fontSize: 13,
-                  fontWeight: "800",
-                  color:
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 7,
+                  backgroundColor:
                     record?.status === "completed"
-                      ? colors.accentText
-                      : colors.textDim,
+                      ? colors.accent
+                      : colors.surface,
+                  borderWidth: record?.status === "completed" ? 0 : 1,
+                  borderColor: colors.border,
+                  borderRadius: 11,
+                  paddingVertical: 13,
+                  opacity: movieWatch.isPending ? 0.6 : 1,
                 }}
               >
-                {record?.status === "completed" ? "İzledin ✓" : "İzledim"}
-              </Text>
-            </Pressable>
+                <Check
+                  size={16}
+                  color={
+                    record?.status === "completed"
+                      ? colors.accentText
+                      : colors.textDim
+                  }
+                  strokeWidth={2.5}
+                />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: "800",
+                    color:
+                      record?.status === "completed"
+                        ? colors.accentText
+                        : colors.textDim,
+                  }}
+                >
+                  {record?.status === "completed" ? "İzledin ✓" : "İzledim"}
+                </Text>
+              </Pressable>
 
+              {/* Değerlendir — sadece izlendiyse görünür, puan sheet'i açar */}
+              {record?.status === "completed" && (
+                <Pressable
+                  onPress={() => setMovieSheetOpen(true)}
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 7,
+                    backgroundColor: colors.surface,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: 11,
+                    paddingVertical: 13,
+                  }}
+                >
+                  <Star size={15} color={colors.accent} />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "800",
+                      color: colors.text,
+                    }}
+                  >
+                    {record?.rating ? `Puanın: ${record.rating}` : "Değerlendir"}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
             {/* Yarıda Bıraktım — dakika sorar */}
             <Pressable
               onPress={() => {
@@ -973,6 +995,11 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
           episode={sheetEp.episode}
           episodeName={sheetEp.name}
           cast={data.cast ?? []}
+          onRemoveWatch={() => {
+            const ep = sheetEp.episode;
+            toggleEp.mutate({ season, episode: ep });
+            setSheetEp(null);
+          }}
         />
       )}
 
