@@ -28,11 +28,25 @@ export default function FollowRequestsScreen() {
   // Kabul edilip geri takip edilenleri işaretle (UI için)
   const [followedBack, setFollowedBack] = useState<Set<string>>(new Set());
   const [accepted, setAccepted] = useState<Set<string>>(new Set());
+  // Kabul edilmiş ama ekranda "geri takip" için tutulan istekler (refetch'te kaybolmasın)
+  const [keptRequests, setKeptRequests] = useState<any[]>([]);
 
   const requests = q.data ?? [];
+  // Backend listesi + kabul edilip tutulan istekler (id bazında tekilleştir)
+  const displayRequests = [
+    ...requests,
+    ...keptRequests.filter((k) => !requests.some((r) => r.id === k.id)),
+  ];
 
   const onAccept = (requestId: string, username: string) => {
     setAccepted((s) => new Set(s).add(requestId));
+    // İsteği local'de tut (refetch listeden düşürünce kart kalsın)
+    const req = requests.find((r) => r.id === requestId);
+    if (req) {
+      setKeptRequests((cur) =>
+        cur.some((k) => k.id === requestId) ? cur : [...cur, req]
+      );
+    }
     handle.mutate({ requestId, action: "accept" });
   };
 
@@ -101,7 +115,7 @@ export default function FollowRequestsScreen() {
             gap: spacing.sm,
           }}
         >
-          {requests.map((req) => {
+          {displayRequests.map((req) => {
             const isAccepted = accepted.has(req.id);
             const didFollowBack = followedBack.has(req.user.username);
             return (

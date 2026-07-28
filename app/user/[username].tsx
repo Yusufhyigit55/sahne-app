@@ -343,10 +343,31 @@ export default function UserProfileScreen() {
             >
               <Pressable
                 onPress={() => {
-                  LayoutAnimation.configureNext(
-                    LayoutAnimation.Presets.easeInEaseOut
-                  );
-                  follow.mutate(username);
+                  const doFollow = () => {
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut
+                    );
+                    follow.mutate(username);
+                  };
+                  // Gizli hesabı takipten çıkarken uyar (tekrar takip için istek gerekir)
+                  if (isFollowing && user.isPrivate) {
+                    Alert.alert(
+                      "Takipten çık",
+                      `${
+                        user.displayName || user.username
+                      } gizli bir hesap. Takipten çıkarsan tekrar takip etmek için yeniden istek göndermen gerekir.`,
+                      [
+                        { text: "Vazgeç", style: "cancel" },
+                        {
+                          text: "Takipten çık",
+                          style: "destructive",
+                          onPress: doFollow,
+                        },
+                      ]
+                    );
+                  } else {
+                    doFollow();
+                  }
                 }}
                 style={{
                   flex: 1,
