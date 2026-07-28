@@ -54,8 +54,8 @@ const NOTIF_TEXT: Record<string, (n: Notification) => string> = {
 
 export default function NotificationsScreen() {
   const { colors } = useTheme();
-  const [tab, setTab] = useState<"notifications" | "activity">("notifications");
-  const q = useNotifications(tab);
+  // Bildirimler artık tek liste: sadece sana yönelik (arkadaş etkinliği Sosyal sekmesinde)
+  const q = useNotifications("notifications");
   const requestsQ = useFollowRequests();
   const markRead = useMarkRead();
   const del = useDeleteNotification();
@@ -208,65 +208,6 @@ export default function NotificationsScreen() {
                 </View>
               )}
             </View>
-            {/* Sekmeler: Bildirimler / Etkinlikler */}
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 8,
-                paddingHorizontal: 18,
-                paddingBottom: 14,
-              }}
-            >
-              <Pressable
-                onPress={() => setTab("notifications")}
-                style={{
-                  flex: 1,
-                  backgroundColor:
-                    tab === "notifications" ? colors.accent : colors.surface,
-                  borderRadius: 100,
-                  paddingVertical: 9,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "800",
-                    color:
-                      tab === "notifications"
-                        ? colors.accentText
-                        : colors.textDim,
-                  }}
-                >
-                  Bildirimler
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => setTab("activity")}
-                style={{
-                  flex: 1,
-                  backgroundColor:
-                    tab === "activity" ? colors.accent : colors.surface,
-                  borderRadius: 100,
-                  paddingVertical: 9,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: "800",
-                    color:
-                      tab === "activity" ? colors.accentText : colors.textDim,
-                  }}
-                >
-                  Arkadaş Etkinliği
-                </Text>
-              </Pressable>
-            </View>
-
-{/* Takip İstekleri — kalıcı ayrı ekrana git */}
             {requests.length > 0 && (
               <Pressable
                 onPress={() => router.push("/follow-requests")}
