@@ -4,6 +4,8 @@ import {
   View,
   Text,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   TextInput,
   ScrollView,
@@ -63,7 +65,8 @@ export function AddContentToListSheet({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.5)",
@@ -266,7 +269,7 @@ export function AddContentToListSheet({
             )}
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

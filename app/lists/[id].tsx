@@ -164,33 +164,6 @@ export default function ListDetailScreen() {
                 </Text>
               </Pressable>
             )}
-            {/* İçerik Ekle — sadece sahibi */}
-            {list.isOwner && (
-              <Pressable
-                onPress={() => setAddSheetOpen(true)}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 5,
-                  paddingVertical: 7,
-                  paddingHorizontal: 13,
-                  borderRadius: 100,
-                  backgroundColor: colors.accent,
-                }}
-              >
-                <Plus size={14} color={colors.accentText} strokeWidth={2.5} />
-                <Text
-                  style={{
-                    fontSize: 12.5,
-                    fontWeight: "700",
-                    color: colors.accentText,
-                  }}
-                >
-                  İçerik Ekle
-                </Text>
-              </Pressable>
-            )}
-
             {/* Favorile — sahibi değilse */}
             {!list.isOwner && (
               <Pressable
