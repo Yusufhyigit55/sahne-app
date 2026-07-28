@@ -13,6 +13,7 @@ import { UserPlus } from "lucide-react-native";
 import { useTheme } from "@/lib/store/theme";
 import { useFeed } from "@/lib/queries/social";
 import { FeedItem } from "@/components/social/FeedItem";
+import { TrendingStrip } from "@/components/social/TrendingStrip";
 import {
   SCREEN_PADDING,
   spacing,
@@ -82,6 +83,8 @@ export default function SocialScreen() {
           />
         }
       >
+        <TrendingStrip />
+
         {feedQ.isLoading ? (
           <View style={{ paddingVertical: spacing.xxl, alignItems: "center" }}>
             <ActivityIndicator color={colors.accent} />

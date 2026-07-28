@@ -74,7 +74,25 @@ export function useFeed() {
     },
   });
 }
+export type TrendingItem = {
+  type: "series" | "movie" | "book";
+  id: number;
+  titleTr: string;
+  poster: string | null;
+  friendCount: number;
+  friends: { avatar: string | null; displayName: string }[];
+};
 
+/** Arkadaşların bu hafta en çok izlediği içerikler (trend) */
+export function useTrending() {
+  return useQuery({
+    queryKey: ["trending"],
+    queryFn: async () => {
+      const { data } = await api.get("/api/social/trending");
+      return data.trending as TrendingItem[];
+    },
+  });
+}
 /** Kullanıcı profili */
 export function useUserProfile(username: string) {
   return useQuery({
