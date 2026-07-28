@@ -39,6 +39,11 @@ const SERIES_OPTIONS: Option[] = [
 
 const BOOK_OPTIONS: Option[] = [
   {
+    key: "completed",
+    label: "Okudum",
+    desc: "Okumayı tamamladım",
+  },
+  {
     key: "reading",
     label: "Okuyorum",
     desc: "Aktif olarak okuyorum",
