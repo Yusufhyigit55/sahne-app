@@ -6,10 +6,14 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Lock, Heart, Trash2, X, Plus } from "lucide-react-native";
+import { ChevronLeft, Lock, Heart, Trash2, X, Plus, Pencil } from "lucide-react-native";
 import { useTheme } from "@/lib/store/theme";
 import { useState } from "react";
 import { AddContentToListSheet } from "@/components/social/AddContentToListSheet";
@@ -18,6 +22,7 @@ import {
   useFavoriteList,
   useRemoveFromList,
   useDeleteList,
+  useEditList,
 } from "@/lib/queries/list";
 
 export default function ListDetailScreen() {
@@ -29,6 +34,9 @@ export default function ListDetailScreen() {
   const favorite = useFavoriteList(id);
   const removeItem = useRemoveFromList(id);
   const deleteList = useDeleteList();
+  const editList = useEditList(id);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
   const [addSheetOpen, setAddSheetOpen] = useState(false);
 
   const onDeleteList = () => {
@@ -89,9 +97,20 @@ export default function ListDetailScreen() {
         </Pressable>
 
         {list.isOwner && (
-          <Pressable onPress={onDeleteList} hitSlop={8}>
-            <Trash2 size={20} color={colors.textFaint} />
-          </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+            <Pressable
+              onPress={() => {
+                setNewTitle(list.title);
+                setRenameOpen(true);
+              }}
+              hitSlop={8}
+            >
+              <Pencil size={19} color={colors.textFaint} />
+            </Pressable>
+            <Pressable onPress={onDeleteList} hitSlop={8}>
+              <Trash2 size={20} color={colors.textFaint} />
+            </Pressable>
+          </View>
         )}
       </View>
 
@@ -324,6 +343,107 @@ export default function ListDetailScreen() {
           )}
         />
       )}
+
+      {/* Liste ismi düzenleme modalı */}
+      <Modal
+        visible={renameOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRenameOpen(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "center",
+            paddingHorizontal: 28,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surfaceAlt,
+              borderRadius: 18,
+              padding: 20,
+              gap: 14,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "800",
+                color: colors.text,
+              }}
+            >
+              Liste ismini düzenle
+            </Text>
+            <TextInput
+              value={newTitle}
+              onChangeText={setNewTitle}
+              placeholder="Liste ismi"
+              placeholderTextColor={colors.textFaint}
+              maxLength={80}
+              autoFocus
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 10,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                fontSize: 15,
+                color: colors.text,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            />
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Pressable
+                onPress={() => setRenameOpen(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 13,
+                  borderRadius: 10,
+                  backgroundColor: colors.surface,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontWeight: "700", color: colors.textDim }}>
+                  Vazgeç
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  const t = newTitle.trim();
+                  if (t.length < 2) {
+                    Alert.alert("Hata", "İsim en az 2 karakter olmalı.");
+                    return;
+                  }
+                  editList.mutate(
+                    { title: t },
+                    {
+                      onSuccess: () => setRenameOpen(false),
+                      onError: () =>
+                        Alert.alert("Hata", "İsim değiştirilemedi."),
+                    }
+                  );
+                }}
+                disabled={editList.isPending}
+                style={{
+                  flex: 1,
+                  paddingVertical: 13,
+                  borderRadius: 10,
+                  backgroundColor: colors.accent,
+                  alignItems: "center",
+                  opacity: editList.isPending ? 0.6 : 1,
+                }}
+              >
+                <Text style={{ fontWeight: "800", color: colors.accentText }}>
+                  {editList.isPending ? "Kaydediliyor..." : "Kaydet"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
