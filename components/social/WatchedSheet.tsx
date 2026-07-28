@@ -225,7 +225,18 @@ export function WatchedSheet({
                     return (
                       <Pressable
                         key={c.id}
-                        onPress={() => setFavChar(active ? null : c.id)}
+                        onPress={() => {
+                          const next = active ? null : c.id;
+                          setFavChar(next);
+                          // Anlık kaydet (film gibi) — mevcut puan/tepki korunur
+                          save.mutate({
+                            season,
+                            episode,
+                            score,
+                            reactions,
+                            favoriteCharacterId: next,
+                          });
+                        }}
                         style={{ width: 64, alignItems: "center" }}
                       >
                         <View
