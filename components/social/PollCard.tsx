@@ -20,28 +20,42 @@ function AnimatedBar({
   color: string;
 }) {
   const widthAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(widthAnim, {
-      toValue: pct,
-      duration: 450,
-      useNativeDriver: false, // width animasyonu native driver desteklemez
-    }).start();
+    Animated.parallel([
+      // Genişlik: hafif yaylanmalı (spring) — daha canlı
+      Animated.spring(widthAnim, {
+        toValue: pct,
+        friction: 8,
+        tension: 40,
+        useNativeDriver: false,
+      }),
+      // Belirme: hızlı fade-in
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: false,
+      }),
+    ]).start();
   }, [pct]);
 
   const widthInterpolated = widthAnim.interpolate({
     inputRange: [0, 100],
     outputRange: ["0%", "100%"],
+    extrapolate: "clamp",
   });
 
   return (
     <Animated.View
+      pointerEvents="none"
       style={{
         position: "absolute",
         left: 0,
         top: 0,
         bottom: 0,
         width: widthInterpolated,
+        opacity: opacityAnim,
         backgroundColor: color,
       }}
     />
