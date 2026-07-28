@@ -30,11 +30,6 @@ const SERIES_OPTIONS: Option[] = [
     label: "İzleme Listesine Taşı",
     desc: "Sonra izleyeceğim",
   },
-  {
-    key: "none",
-    label: "Durumu Kaldır",
-    desc: "İzleme kaydını sıfırla",
-  },
 ];
 
 const BOOK_OPTIONS: Option[] = [
@@ -63,11 +58,6 @@ const BOOK_OPTIONS: Option[] = [
     label: "Okuma Listesine Taşı",
     desc: "Sonra okuyacağım",
   },
-  {
-    key: "none",
-    label: "Durumu Kaldır",
-    desc: "Okuma kaydını sıfırla",
-  },
 ];
 
 const MOVIE_OPTIONS: Option[] = [
@@ -85,11 +75,6 @@ const MOVIE_OPTIONS: Option[] = [
     key: "dropped",
     label: "Yarım Bıraktım",
     desc: "Bitirmedim",
-  },
-  {
-    key: "none",
-    label: "Durumu Kaldır",
-    desc: "İzleme kaydını sıfırla",
   },
 ];
 
@@ -186,7 +171,7 @@ export function StatusSheet({
           {/* Seçenekler */}
           {options.map((opt, i) => {
             const active = current === opt.key;
-            const isDanger = opt.key === "none" || opt.key === "dropped";
+            const isDanger = opt.key === "dropped";
 
             return (
               <Pressable
