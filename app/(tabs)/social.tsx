@@ -14,6 +14,7 @@ import { useTheme } from "@/lib/store/theme";
 import { useFeed } from "@/lib/queries/social";
 import { FeedItem } from "@/components/social/FeedItem";
 import { TrendingStrip } from "@/components/social/TrendingStrip";
+import { TopFriendsStrip } from "@/components/social/TopFriendsStrip";
 import { TogetherSuggestCard } from "@/components/social/TogetherSuggestCard";
 import { FriendsPollsStrip } from "@/components/social/FriendsPollsStrip";
 import {
@@ -85,6 +86,7 @@ export default function SocialScreen() {
           />
         }
       >
+        <TopFriendsStrip />
         <TrendingStrip />
         <TogetherSuggestCard />
         <FriendsPollsStrip />

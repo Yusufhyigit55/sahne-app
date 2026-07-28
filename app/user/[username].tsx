@@ -543,41 +543,57 @@ export default function UserProfileScreen() {
               </View>
             )}
 
-            {/* Favoriler */}
-            {(user.favorites?.length ?? 0) > 0 && (
-              <View style={{ marginTop: spacing.section, gap: spacing.md }}>
-                <Text
-                  style={{
-                    fontSize: fontSize.xl,
-                    fontWeight: fontWeight.heavy,
-                    color: colors.text,
-                    paddingHorizontal: SCREEN_PADDING,
-                  }}
-                >
-                  Favoriler
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    gap: spacing.md,
-                    paddingHorizontal: SCREEN_PADDING,
-                  }}
-                >
-                  {user.favorites.map((item) => (
-                    <PosterCard
-                      key={`fav-${item.type}:${item.id}`}
-                      title={item.titleTr}
-                      poster={item.poster}
-                      width={92}
-                      onPress={() =>
-                        router.push(`/content/${item.type}/${item.id}`)
-                      }
-                    />
-                  ))}
-                </ScrollView>
-              </View>
-            )}
+            {/* Favoriler — tür bazlı ayrı şeritler */}
+            {(user.favorites?.length ?? 0) > 0 &&
+              (
+                [
+                  { type: "series", label: "Favori Diziler" },
+                  { type: "movie", label: "Favori Filmler" },
+                  { type: "book", label: "Favori Kitaplar" },
+                ] as const
+              ).map((group) => {
+                const items = user.favorites.filter(
+                  (f) => f.type === group.type
+                );
+                if (items.length === 0) return null;
+                return (
+                  <View
+                    key={group.type}
+                    style={{ marginTop: spacing.section, gap: spacing.md }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: fontSize.xl,
+                        fontWeight: fontWeight.heavy,
+                        color: colors.text,
+                        paddingHorizontal: SCREEN_PADDING,
+                      }}
+                    >
+                      {group.label}
+                    </Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{
+                        gap: spacing.md,
+                        paddingHorizontal: SCREEN_PADDING,
+                      }}
+                    >
+                      {items.map((item) => (
+                        <PosterCard
+                          key={`fav-${item.type}:${item.id}`}
+                          title={item.titleTr}
+                          poster={item.poster}
+                          width={92}
+                          onPress={() =>
+                            router.push(`/content/${item.type}/${item.id}`)
+                          }
+                        />
+                      ))}
+                    </ScrollView>
+                  </View>
+                );
+              })}
 
             {/* Kütüphanesini gör */}
             <Pressable

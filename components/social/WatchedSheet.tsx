@@ -273,7 +273,7 @@ export function WatchedSheet({
                           {c.character || c.name}
                         </Text>
 
-                        {charTotalVotes > 0 && stat && (
+                         {favChar != null && charTotalVotes > 0 && stat && (
                           <Text
                             style={{
                               fontSize: 10,

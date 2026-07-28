@@ -33,9 +33,11 @@ export default function FollowRequestsScreen() {
 
   const requests = q.data ?? [];
   // Backend listesi + kabul edilip tutulan istekler (id bazında tekilleştir)
+  // Kabul edilenleri (kept) her zaman göster; requests'ten gelenleri kept'te olmayanlarla birleştir
+  const keptIds = new Set(keptRequests.map((k) => k.id));
   const displayRequests = [
-    ...requests,
-    ...keptRequests.filter((k) => !requests.some((r) => r.id === k.id)),
+    ...requests.filter((r) => !keptIds.has(r.id)),
+    ...keptRequests,
   ];
 
   const onAccept = (requestId: string, username: string) => {
