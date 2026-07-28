@@ -87,7 +87,7 @@ export function useBlockedUsers(type: "block" | "mute") {
 }
 // ---- VERİ AKTARIMI (export / import) ----
 
-export type ImportSource = "letterboxd" | "trakt" | "tracks";
+export type ImportSource = "letterboxd" | "trakt" | "tracks" | "tvtime";
 
 export type ImportReport = {
   added: number;

@@ -282,6 +282,7 @@ export default function SettingsScreen() {
       [
         { text: "Letterboxd (film)", onPress: () => runImport("letterboxd") },
         { text: "Trakt (dizi/film)", onPress: () => runImport("trakt") },
+        { text: "TV Time (dizi/film)", onPress: () => runImport("tvtime") },
         { text: "Tracks yedeği", onPress: () => runImport("tracks") },
         { text: "Vazgeç", style: "cancel" },
       ],
@@ -663,7 +664,7 @@ export default function SettingsScreen() {
               <Text
                 style={{ fontSize: 11.5, color: colors.textDim, marginTop: 2 }}
               >
-                Letterboxd, Trakt veya Tracks yedeğinden aktar
+                Letterboxd, Trakt, TV Time veya Tracks yedeğinden aktar
               </Text>
             </View>
           </Pressable>
