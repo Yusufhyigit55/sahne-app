@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0B0D0E"
     },
     "ios": {
       "supportsTablet": true,
@@ -31,7 +31,7 @@
       "package": "com.yusufhyigit.storykind",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#2DD4BF"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

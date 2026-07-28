@@ -147,18 +147,44 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
       doMarkSingle();
     }
   };
+  // Aktif sezon tam izlendi mi?
+  const activeSeasonData = data?.seasons?.find(
+    (s: any) => s.seasonNumber === season
+  );
+  const activeSeasonWatched =
+    statusQ.data?.seasonProgress?.[season] ?? 0;
+  const activeSeasonComplete =
+    (activeSeasonData?.episodeCount ?? 0) > 0 &&
+    activeSeasonWatched >= (activeSeasonData?.episodeCount ?? 0);
+
   const handleBulkSeason = () => {
-    Alert.alert(
-      "Sezonu İşaretle",
-      `${season}. sezonun tüm yayınlanmış bölümlerini izledim olarak işaretle?`,
-      [
-        { text: "Vazgeç", style: "cancel" },
-        {
-          text: "İşaretle",
-          onPress: () => bulk.mutate({ scope: "season", season }),
-        },
-      ]
-    );
+    if (activeSeasonComplete) {
+      // Tam izlenmiş → işareti kaldır
+      Alert.alert(
+        "Sezon İşaretini Kaldır",
+        `${season}. sezonun tüm bölüm işaretlerini kaldır?`,
+        [
+          { text: "Vazgeç", style: "cancel" },
+          {
+            text: "İşareti Kaldır",
+            style: "destructive",
+            onPress: () => bulk.mutate({ scope: "season-remove", season }),
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        "Sezonu İşaretle",
+        `${season}. sezonun tüm yayınlanmış bölümlerini izledim olarak işaretle?`,
+        [
+          { text: "Vazgeç", style: "cancel" },
+          {
+            text: "İşaretle",
+            onPress: () => bulk.mutate({ scope: "season", season }),
+          },
+        ]
+      );
+    }
   };
 
   const handleBulkAll = () => {
@@ -854,15 +880,54 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ gap: 8 }}
               >
-                {data.seasons.map((s: any) => (
-                  <Chip
-                    key={s.seasonNumber}
-                    label={`S${s.seasonNumber}`}
-                    active={season === s.seasonNumber}
-                    onPress={() => setSeason(s.seasonNumber)}
-                    size="sm"
-                  />
-                ))}
+                {data.seasons.map((s: any) => {
+                  const watched = statusQ.data?.seasonProgress?.[s.seasonNumber] ?? 0;
+                  const total = s.episodeCount ?? 0;
+                  const isComplete = total > 0 && watched >= total;
+                  const isActive = season === s.seasonNumber;
+                  return (
+                    <Pressable
+                      key={s.seasonNumber}
+                      onPress={() => setSeason(s.seasonNumber)}
+                      style={{
+                        paddingHorizontal: 14,
+                        paddingVertical: 8,
+                        borderRadius: 100,
+                        borderWidth: 1,
+                        backgroundColor: isActive
+                          ? colors.accent
+                          : isComplete
+                          ? "rgba(45,212,191,0.15)"
+                          : colors.surface,
+                        borderColor: isActive
+                          ? colors.accent
+                          : isComplete
+                          ? colors.accent
+                          : colors.border,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      {isComplete && !isActive && (
+                        <Check size={12} color={colors.accent} strokeWidth={3} />
+                      )}
+                      <Text
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: "700",
+                          color: isActive
+                            ? colors.accentText
+                            : isComplete
+                            ? colors.accent
+                            : colors.textDim,
+                        }}
+                      >
+                        S{s.seasonNumber}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
 
               <Pressable
@@ -885,7 +950,9 @@ const handleToggle = (episode: number, isAired: boolean, name: string) => {
                   }}
                 >
                   {bulk.isPending
-                    ? "İşaretleniyor..."
+                    ? "İşleniyor..."
+                    : activeSeasonComplete
+                    ? `${season}. Sezon İşaretini Kaldır`
                     : `${season}. Sezonu İşaretle`}
                 </Text>
               </Pressable>

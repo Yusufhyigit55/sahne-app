@@ -46,6 +46,7 @@ export function useWatchStatus(type: string, id: string | number) {
       return data as {
         record: WatchRecord | null;
         watchedEpisodes: number;
+        seasonProgress?: Record<number, number>;
         totalEpisodes: number;
       };
     },
@@ -150,7 +151,7 @@ export function useBulkWatch(tmdbId: number) {
 
   return useMutation({
     mutationFn: async (vars: {
-      scope: "season" | "all" | "upto";
+      scope: "season" | "all" | "upto" | "season-remove";
       season?: number;
       episode?: number;
       watchedAt?: string;

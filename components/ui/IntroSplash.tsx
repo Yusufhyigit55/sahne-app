@@ -79,8 +79,8 @@ export function IntroSplash({ onDone }: { onDone: () => void }) {
 
     // 5) Kapanış
     logoOpacity.value = withDelay(
-      2600,
-      withTiming(0, { duration: 500 }, (finished) => {
+      3200,
+      withTiming(0, { duration: 600 }, (finished) => {
         if (finished) {
           runOnJS(onDone)();
         }
@@ -146,26 +146,7 @@ export function IntroSplash({ onDone }: { onDone: () => void }) {
         />
       </Animated.View>
 
-      {/* Logo */}
-      <View style={styles.logoWrap}>
-        <Animated.Text style={[styles.logo, logoStyle]}>TRACKS</Animated.Text>
-
-        <Animated.View style={[styles.lineWrap, lineStyle]}>
-          <LinearGradient
-            colors={[
-              "transparent",
-              ACCENT,
-              ACCENT_BRIGHT,
-              ACCENT,
-              "transparent",
-            ]}
-            locations={[0, 0.15, 0.5, 0.85, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.line}
-          />
-        </Animated.View>
-      </View>
+      
 
       {/* Sol perde */}
       <Animated.View style={[styles.curtain, styles.leftCurtain, leftStyle]}>
@@ -188,6 +169,27 @@ export function IntroSplash({ onDone }: { onDone: () => void }) {
         />
         <View style={styles.curtainEdgeLeft} />
       </Animated.View>
+
+      {/* Logo — perdelerin ÜSTÜNDE (her durumda görünür) */}
+      <View style={styles.logoWrap} pointerEvents="none">
+        <Animated.Text style={[styles.logo, logoStyle]}>TRACKS</Animated.Text>
+
+        <Animated.View style={[styles.lineWrap, lineStyle]}>
+          <LinearGradient
+            colors={[
+              "transparent",
+              ACCENT,
+              ACCENT_BRIGHT,
+              ACCENT,
+              "transparent",
+            ]}
+            locations={[0, 0.15, 0.5, 0.85, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.line}
+          />
+        </Animated.View>
+      </View>
     </View>
   );
 }
