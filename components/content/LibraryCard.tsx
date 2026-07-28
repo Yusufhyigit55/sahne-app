@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable, Animated } from "react-native";
 import { Image } from "expo-image";
-import { Check, Star, Bookmark } from "lucide-react-native";
+import { Check, Star, Bookmark, X } from "lucide-react-native";
 import { useTheme } from "@/lib/store/theme";
 import { radius, shadow, fontSize, fontWeight } from "@/theme";
 import type { LibraryItem } from "@/lib/queries/library";
@@ -152,6 +152,21 @@ export function LibraryCard({
                 </View>
               )}
 
+              {item.status === "dropped" && (
+                <View
+                  style={{
+                    width: 23,
+                    height: 23,
+                    borderRadius: radius.pill,
+                    backgroundColor: colors.warn,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <X size={12} color="#fff" strokeWidth={3} />
+                </View>
+              )}
+
               {(item.status === "completed" ||
                 item.status === "up_to_date") && (
                 <View
@@ -240,6 +255,23 @@ export function LibraryCard({
           }}
         >
           {item.watchedEpisodes}/{item.totalEpisodes} bölüm
+        </Text>
+      )}
+
+      {item.status === "dropped" && (
+        <Text
+          style={{
+            fontSize: fontSize.xs,
+            color: colors.warn,
+            marginTop: 2,
+            fontWeight: fontWeight.bold,
+          }}
+        >
+          {item.type === "movie" && item.stoppedAtMinute
+            ? `Yarıda bırakıldı · ${item.stoppedAtMinute}. dk`
+            : item.type === "series" && item.watchedEpisodes > 0
+            ? `Yarıda bırakıldı · ${item.watchedEpisodes} bölüm`
+            : "Yarıda bırakıldı"}
         </Text>
       )}
 

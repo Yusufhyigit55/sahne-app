@@ -28,6 +28,7 @@ export type LibraryItem = {
   watchedEpisodes: number;
   totalEpisodes: number;
   progress: number;
+  stoppedAtMinute?: number | null;
   updatedAt: string;
 };
 
