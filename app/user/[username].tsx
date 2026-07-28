@@ -597,9 +597,32 @@ export default function UserProfileScreen() {
 
             {/* Kütüphanesini gör */}
             <Pressable
-              onPress={() => router.push(`/lists?userId=${user.id}`)}
+              onPress={() => router.push(`/library/${user.username}`)}
               style={{
                 marginTop: spacing.section,
+                marginHorizontal: SCREEN_PADDING,
+                backgroundColor: colors.surface,
+                borderRadius: radius.lg,
+                paddingVertical: 15,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: fontSize.md,
+                  fontWeight: fontWeight.bold,
+                  color: colors.accent,
+                }}
+              >
+                Kütüphanesini Gör
+              </Text>
+            </Pressable>
+
+            {/* Listelerini gör */}
+            <Pressable
+              onPress={() => router.push(`/lists?userId=${user.id}`)}
+              style={{
+                marginTop: spacing.md,
                 marginHorizontal: SCREEN_PADDING,
                 backgroundColor: colors.surface,
                 borderRadius: radius.lg,
