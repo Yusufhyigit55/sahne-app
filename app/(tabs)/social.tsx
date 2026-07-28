@@ -15,6 +15,7 @@ import { useFeed } from "@/lib/queries/social";
 import { FeedItem } from "@/components/social/FeedItem";
 import { TrendingStrip } from "@/components/social/TrendingStrip";
 import { TogetherSuggestCard } from "@/components/social/TogetherSuggestCard";
+import { FriendsPollsStrip } from "@/components/social/FriendsPollsStrip";
 import {
   SCREEN_PADDING,
   spacing,
@@ -86,6 +87,7 @@ export default function SocialScreen() {
       >
         <TrendingStrip />
         <TogetherSuggestCard />
+        <FriendsPollsStrip />
 
         {feedQ.isLoading ? (
           <View style={{ paddingVertical: spacing.xxl, alignItems: "center" }}>

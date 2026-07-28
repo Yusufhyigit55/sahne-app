@@ -82,7 +82,29 @@ export type TrendingItem = {
   friendCount: number;
   friends: { avatar: string | null; displayName: string }[];
 };
+export type FriendPoll = {
+  id: string;
+  question: string;
+  creator: { username: string; displayName: string; avatar: string | null };
+  content: {
+    type: "series" | "movie" | "book";
+    id: number;
+    titleTr: string;
+    poster: string | null;
+  };
+  optionCount: number;
+};
 
+/** Takip edilenlerin açtığı son anketler */
+export function useFriendsPolls() {
+  return useQuery({
+    queryKey: ["friendsPolls"],
+    queryFn: async () => {
+      const { data } = await api.get("/api/social/friends-polls");
+      return data.polls as FriendPoll[];
+    },
+  });
+}
 /** Arkadaşların bu hafta en çok izlediği içerikler (trend) */
 export function useTrending() {
   return useQuery({
