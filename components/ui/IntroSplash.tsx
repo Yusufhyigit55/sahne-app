@@ -57,8 +57,19 @@ export function IntroSplash({ onDone }: { onDone: () => void }) {
       })
     );
 
-    // 3) Logo belirir
-    logoOpacity.value = withDelay(1100, withTiming(1, { duration: 700 }));
+    // 3) Logo belirir → görünür kalır → kapanışta kaybolur (tek sequence, ezme olmasın)
+    logoOpacity.value = withDelay(
+      1100,
+      withSequence(
+        withTiming(1, { duration: 700 }),
+        withDelay(1400, withTiming(1, { duration: 1 })),
+        withTiming(0, { duration: 600 }, (finished) => {
+          if (finished) {
+            runOnJS(onDone)();
+          }
+        })
+      )
+    );
 
     logoSpacing.value = withDelay(
       1100,
@@ -77,16 +88,7 @@ export function IntroSplash({ onDone }: { onDone: () => void }) {
       })
     );
 
-    // 5) Kapanış
-    logoOpacity.value = withDelay(
-      3200,
-      withTiming(0, { duration: 600 }, (finished) => {
-        if (finished) {
-          runOnJS(onDone)();
-        }
-      })
-    );
-  }, []);
+    }, []);
 
   const leftStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: leftX.value }],
