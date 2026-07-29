@@ -239,10 +239,20 @@ export function useHandleRequest() {
       action: "accept" | "reject";
     }) => {
       const { data } = await api.post("/api/social/requests", vars);
-      return data;
+      return { ...data, _vars: vars };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["followRequests"] });
+    onSuccess: (data: any) => {
+      // followRequests'i REFETCH ETME — kabul edilen kartın "geri takip et"
+      // olarak ekranda kalabilmesi için sadece cache'ten manuel çıkar.
+      const requestId = data?._vars?.requestId;
+      if (requestId) {
+        qc.setQueryData(["followRequests"], (old: any) =>
+          Array.isArray(old)
+            ? old.filter((r: any) => r.id !== requestId)
+            : old
+        );
+      }
+      // userProfile (takipçi sayısı vб.) refetch olabilir, kartı etkilemez
       qc.invalidateQueries({ queryKey: ["userProfile"] });
     },
   });

@@ -43,7 +43,8 @@ export default function FollowRequestsScreen() {
   const onAccept = (requestId: string, username: string) => {
     setAccepted((s) => new Set(s).add(requestId));
     // İsteği local'de tut (refetch listeden düşürünce kart kalsın)
-    const req = requests.find((r) => r.id === requestId);
+    // displayRequests'ten al (requests'te olmasa bile kept'ten bulunur)
+    const req = displayRequests.find((r) => r.id === requestId);
     if (req) {
       setKeptRequests((cur) =>
         cur.some((k) => k.id === requestId) ? cur : [...cur, req]
@@ -51,7 +52,6 @@ export default function FollowRequestsScreen() {
     }
     handle.mutate({ requestId, action: "accept" });
   };
-
   const onReject = (requestId: string) => {
     handle.mutate({ requestId, action: "reject" });
   };
